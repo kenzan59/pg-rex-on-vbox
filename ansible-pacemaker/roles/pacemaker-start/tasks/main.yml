@@ -1,0 +1,2 @@
+- name: start Pacemaker cluster
+  command: pcs cluster start --wait

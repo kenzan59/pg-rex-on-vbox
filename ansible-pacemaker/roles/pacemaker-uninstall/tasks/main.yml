@@ -1,0 +1,105 @@
+### destroy cluster
+## # pcs cluster destroy --all
+## # pcs host deauth NODE1 NODE2
+- name: check if pcs was already uninstalled
+  command: pcs --version
+  changed_when: false
+  failed_when: false
+  register: pcs_state
+
+- block:
+  - name: destroy cluster
+    command: pcs cluster destroy --all
+
+  - name: flush cluster authentication
+    command: pcs host deauth {{ groups['hacluster'] | join(' ') }}
+
+  when: inventory_hostname == ansible_play_hosts[0] and pcs_state.rc == 0
+  tags: destroy
+
+### remove firewalld configuration
+## # firewall-cmd --permanent --remove-service=high-availability
+## # firewall-cmd --removed-service=high-availability
+- name: check if firewalld is enabled
+  command: firewall-cmd --state
+  changed_when: false
+  failed_when: false
+  register: firewalld_state
+
+- name: remove firewalld configuration for Pacemaker/Corosync (permanent)
+  command: firewall-cmd --permanent --remove-service=high-availability
+  register: result
+  changed_when: '"NOT_ENABLED" not in result.stderr'
+  when: firewalld_state.rc == 0
+
+- name: remove firewalld configuration for Pacemaker/Corosync (runtime)
+  command: firewall-cmd --remove-service=high-availability
+  register: result
+  changed_when: '"NOT_ENABLED" not in result.stderr'
+  when: firewalld_state.rc == 0
+
+### uninstall packages
+#
+## # yum erase pcs pacemaker fence-agents-all
+#
+# autoremove seems enabled by default when running it from the shell
+#
+- name: uninstall pacemaker packages
+  yum:
+    name: ['pcs', 'pacemaker', 'fence-agents-all']
+    autoremove: yes
+    state: absent
+  tags: yum
+
+# FYI:
+# if autoremove did not work, here is an alternative way
+# yum module does not support a wildcard for the package names so use command:
+#
+- name: uninstall pacemaker packages without autoremove (--tags=uninstall_force)
+  command: env LANG=C yum -y erase pcs pacemaker* corosync* libknet* fence-*
+  args:
+    warn: false
+  register: result
+  changed_when: "'Nothing to do.' not in result.stdout"
+  tags: uninstall_force,never
+
+### Other cleanup stuff
+## # rm -rf /var/lib/{pcsd,pacemaker,corosync} /var/log/{pacemaker,cluster} /etc/corosync
+# remove directories
+- name: cleanup directories
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /var/lib/pcsd/
+    - /var/lib/pacemaker
+    - /var/lib/corosync
+    - /var/log/pacemaker
+    - /var/log/cluster
+    - /etc/corosync
+
+# remove hacluster users
+## # userdel hacluster
+## # groupdel haclient
+- name: remove hacluster user
+  user:
+    name: hacluster
+    state: absent
+- name: remove haclient group
+  group:
+    name: haclient
+    state: absent
+
+# cleanup no_proxy
+## # vi /etc/environment # remove no_proxy=NODE1,NODE2,...
+- name: compose no_proxy list
+  set_fact:
+    NO_PROXY_LIST: >-
+      {%- for node in groups['hacluster']|sort -%}
+        {{ node }},{{ hostvars[node]['m_lan_addr']}},
+      {%- endfor -%}
+- name: remove no_proxy for pcs communication
+  lineinfile:
+    path: /etc/environment
+    regexp: ^export no_proxy={{ NO_PROXY_LIST }}
+    state: absent

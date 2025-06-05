@@ -1,0 +1,16 @@
+- hosts: localhost
+  become: false
+  max_fail_percentage: 0
+
+  tasks:
+    - include_tasks: ./vagrant/11-vagrant.yml
+      when: "'microsoft-standard' not in ansible_kernel"
+      tags: always
+
+    - include_tasks: ./vagrant/12-vagrant-wsl2.yml
+      when: "'microsoft-standard' in ansible_kernel"
+      tags: always
+
+  environment:
+    VAGRANT_CWD: "{{ playbook_dir }}/vagrant"
+    WSLENV: VAGRANT_CWD/p:http_proxy:https_proxy

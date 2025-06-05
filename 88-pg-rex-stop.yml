@@ -1,0 +1,212 @@
+# PG-REX Complete Shutdown
+- name: PG-REX Complete Shutdown (Standby first, then Primary, VMs, and VirtualBMC)
+  hosts: hacluster
+  become: yes
+  gather_facts: no
+  vars:
+    primary_node: ""
+    standby_node: ""
+  
+  tasks:
+    # Get cluster status to analyze resource states
+    - name: Get cluster status from all nodes
+      shell: pcs status --full
+      register: pcs_status_output
+      failed_when: false
+      
+    # Parse resource state to determine if this node is Primary (Promoted) or Standby (Unpromoted)
+    - name: Parse resource state to identify Primary and Standby nodes
+      set_fact:
+        node_role: "{{ 'primary' if ('Promoted ' + inventory_hostname) in pcs_status_output.stdout else 'standby' if ('Unpromoted ' + inventory_hostname) in pcs_status_output.stdout else 'unknown' }}"
+      when: pcs_status_output.rc == 0
+      
+    # Check if PG-REX is already stopped by looking for pacemaker connection failures
+    - name: Check if PG-REX is already stopped
+      set_fact:
+        pgrex_already_stopped: >-
+          {{ 
+            pcs_status_output.rc != 0 and 
+            ('Connection to cluster failed' in pcs_status_output.stderr or 
+             'Connection refused' in pcs_status_output.stderr)
+          }}
+      
+    # Debug the pcs status output for troubleshooting
+    - name: Debug pcs status output
+      debug:
+        msg: |
+          Node: {{ inventory_hostname }}
+          PCS command return code: {{ pcs_status_output.rc }}
+          PCS stderr: {{ pcs_status_output.stderr | default('') }}
+          Looking for: "Promoted {{ inventory_hostname }}" or "Unpromoted {{ inventory_hostname }}"
+          Found Promoted: {{ ('Promoted ' + inventory_hostname) in pcs_status_output.stdout }}
+          Found Unpromoted: {{ ('Unpromoted ' + inventory_hostname) in pcs_status_output.stdout }}
+          Determined role: {{ node_role | default('not determined') }}
+          PG-REX already stopped: {{ pgrex_already_stopped | default(false) }}
+      
+    # Display the identified role for each node for debugging
+    - name: Debug node roles
+      debug:
+        msg: "Node {{ inventory_hostname }} role: {{ node_role | default('unknown') }}"
+    
+    # Store the Primary node information for later reference
+    - name: Identify Primary node
+      set_fact:
+        primary_node: "{{ inventory_hostname }}"
+      when: node_role is defined and node_role == 'primary'
+      delegate_to: localhost
+      delegate_facts: true
+      
+    # Store the Standby node information for later reference
+    - name: Identify Standby node  
+      set_fact:
+        standby_node: "{{ inventory_hostname }}"
+      when: node_role is defined and node_role == 'standby'
+      delegate_to: localhost
+      delegate_facts: true
+
+    # Collect all node role information and PG-REX status in a centralized location
+    - name: Collect node role information
+      set_fact:
+        all_node_roles: "{{ all_node_roles | default({}) | combine({inventory_hostname: node_role | default('unknown')}) }}"
+        pgrex_stopped_status: "{{ pgrex_stopped_status | default({}) | combine({inventory_hostname: pgrex_already_stopped | default(false)}) }}"
+      delegate_to: localhost
+      delegate_facts: true
+
+    # Wait for all nodes to complete role identification
+    - name: Wait for role collection to complete
+      pause:
+        seconds: 2
+      run_once: true
+
+    # Display the complete cluster role mapping for verification
+    - name: Display identified roles
+      debug:
+        msg: |
+          Cluster node roles:
+          {% for host, role in hostvars['localhost']['all_node_roles'].items() %}
+          - {{ host }}: {{ role }}
+          {% endfor %}
+          Primary node: {{ hostvars['localhost']['primary_node'] | default('Not found') }}
+          Standby node: {{ hostvars['localhost']['standby_node'] | default('Not found') }}
+          
+          PG-REX stopped status:
+          {% for host, stopped in hostvars['localhost']['pgrex_stopped_status'].items() %}
+          - {{ host }}: {{ 'Already stopped' if stopped else 'Running' }}
+          {% endfor %}
+          
+          {% if hostvars['localhost']['pgrex_stopped_status'].values() | list | unique == [true] %}
+          PG-REX is already stopped on all nodes. Skipping PG-REX shutdown steps.
+          {% endif %}
+      run_once: true
+
+    # Check if PG-REX is already stopped on all nodes
+    - name: Set PG-REX global stop status
+      set_fact:
+        pgrex_globally_stopped: "{{ hostvars['localhost']['pgrex_stopped_status'].values() | list | unique == [true] }}"
+      delegate_to: localhost
+      delegate_facts: true
+      run_once: true
+
+    # Abort execution if Primary and Standby roles cannot be determined AND PG-REX is not already stopped
+    - name: Fail if roles cannot be determined
+      fail:
+        msg: "Cannot determine Primary and Standby nodes. Please check cluster status."
+      when: 
+        - not hostvars['localhost']['pgrex_globally_stopped'] | default(false)
+        - (hostvars['localhost']['primary_node'] is not defined or hostvars['localhost']['standby_node'] is not defined)
+      run_once: true
+
+    # Execute PG-REX shutdown sequence on Standby node first
+    - name: Stop PG-REX on Standby node
+      block:
+        # Run pg-rex_stop command on the Standby node with full path
+        - name: Execute pg-rex_stop on Standby
+          shell: /usr/local/bin/pg-rex_stop
+          register: standby_stop_result
+          failed_when: standby_stop_result.rc != 0
+          
+        # Show the results of Standby node shutdown
+        - name: Display Standby stop result
+          debug:
+            msg: |
+              Standby node {{ inventory_hostname }} stop result:
+              Return code: {{ standby_stop_result.rc }}
+              Stdout: {{ standby_stop_result.stdout }}
+              Stderr: {{ standby_stop_result.stderr }}
+              
+        # Allow time for Standby node to completely stop before proceeding
+        - name: Wait for Standby to fully stop
+          pause:
+            seconds: 10
+            
+      when: 
+        - not hostvars['localhost']['pgrex_globally_stopped'] | default(false)
+        - inventory_hostname == hostvars['localhost']['standby_node']
+
+    # Check cluster status after Standby node has been stopped
+    - name: Verify Standby has stopped
+      shell: pcs status --full
+      register: post_standby_status
+      when: 
+        - not hostvars['localhost']['pgrex_globally_stopped'] | default(false)
+        - inventory_hostname == hostvars['localhost']['primary_node']
+      
+    # Display cluster state after Standby shutdown for verification
+    - name: Display cluster status after Standby stop
+      debug:
+        msg: |
+          Cluster status after Standby stop:
+          {{ post_standby_status.stdout }}
+      when: 
+        - not hostvars['localhost']['pgrex_globally_stopped'] | default(false)
+        - inventory_hostname == hostvars['localhost']['primary_node']
+
+    # Execute PG-REX shutdown sequence on Primary node after Standby is stopped
+    - name: Stop PG-REX on Primary node
+      block:
+        # Run pg-rex_stop command on the Primary node with full path
+        - name: Execute pg-rex_stop on Primary
+          shell: /usr/local/bin/pg-rex_stop
+          register: primary_stop_result
+          failed_when: primary_stop_result.rc != 0
+          
+        # Show the results of Primary node shutdown
+        - name: Display Primary stop result
+          debug:
+            msg: |
+              Primary node {{ inventory_hostname }} stop result:
+              Return code: {{ primary_stop_result.rc }}
+              Stdout: {{ primary_stop_result.stdout }}
+              Stderr: {{ primary_stop_result.stderr }}
+              
+      when: 
+        - not hostvars['localhost']['pgrex_globally_stopped'] | default(false)
+        - inventory_hostname == hostvars['localhost']['primary_node']
+
+    # Perform final cluster status check after both nodes are stopped
+    - name: Final cluster status check
+      shell: pcs status --full
+      register: final_status
+      failed_when: false
+      run_once: true
+      
+    # Display the final state of the cluster
+    - name: Display final cluster status
+      debug:
+        msg: |
+          Final cluster status:
+          {{ final_status.stdout }}
+      run_once: true
+
+    # Show summary of PG-REX shutdown completion
+    - name: Shutdown summary
+      debug:
+        msg: |
+          {% if hostvars['localhost']['pgrex_globally_stopped'] | default(false) %}
+          PG-REX was already stopped - skipped shutdown steps.
+          {% else %}
+          PG-REX Shutdown completed successfully:
+          1. Standby node ({{ hostvars['localhost']['standby_node'] }}) stopped
+          2. Primary node ({{ hostvars['localhost']['primary_node'] }}) stopped
+          {% endif %}
+      run_once: true

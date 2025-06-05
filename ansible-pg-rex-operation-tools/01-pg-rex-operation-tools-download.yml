@@ -1,0 +1,200 @@
+### 3.5.0 Playbook to download RPM packages
+- hosts: localhost
+  connection: local
+  become: false
+  gather_facts: no
+
+  vars:
+    download_dir: "./roles/pg-rex-operation-tools-install/files"
+    temp_dir: "/tmp/pg-rex-tools"
+    
+  tasks:
+    # Ensure all required directories exist
+    - name: Ensure all required directories exist
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      with_items:
+        - "./roles"
+        - "./roles/pg-rex-operation-tools-install"
+        - "{{ download_dir }}"
+        - "{{ temp_dir }}"
+        
+    # Download the perl-IO-Tty RPM package directly from Rocky Linux repository
+    - name: Download perl-IO-Tty RPM directly from Rocky Linux repo
+      get_url:
+        url: "{{ rocky_repo_url }}/perl-IO-Tty-1.16-4.el9.x86_64.rpm"
+        dest: "{{ download_dir }}/perl-IO-Tty-1.16-4.el9.x86_64.rpm"
+        timeout: 60
+      register: perl_io_download
+        
+    # Download the tarball containing the PG-REX tools and dependencies
+    - name: Download PG-REX tools tarball
+      get_url:
+        url: "{{ pg_rex_tools_url }}"
+        dest: "{{ temp_dir }}/pg-rex17-1.0-1.tar.gz"
+        timeout: 120
+        force: yes
+        validate_certs: no
+        use_proxy: yes
+        http_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36"
+      register: pg_rex_download
+      retries: 3
+      delay: 5
+      until: pg_rex_download is succeeded
+      ignore_errors: yes
+
+    # Check if we need to try alternative download method
+    - name: Check if PG-REX download failed
+      set_fact:
+        use_alternative_download: true
+      when: pg_rex_download is failed
+
+    # Alternative download using curl if get_url failed
+    - name: Try alternative download with curl
+      shell: "curl -L -A 'Mozilla/5.0' --max-time 180 --retry 3 --retry-delay 5 '{{ pg_rex_tools_url }}' -o '{{ temp_dir }}/pg-rex17-1.0-1.tar.gz'"
+      when: use_alternative_download is defined and use_alternative_download
+      register: curl_download
+      ignore_errors: yes
+
+    # Check if file exists after download attempts
+    - name: Check if tarball was downloaded by either method
+      stat:
+        path: "{{ temp_dir }}/pg-rex17-1.0-1.tar.gz"
+      register: tarball_stat
+
+    # Debug tarball size if it exists
+    - name: Debug tarball info
+      debug:
+        msg: "Tarball exists: {{ tarball_stat.stat.exists }}, Size: {{ tarball_stat.stat.size | default('unknown') }} bytes"
+      when: tarball_stat.stat is defined
+
+    # Extract the downloaded tarball to access its contents
+    - name: Extract PG-REX tools tarball
+      unarchive:
+        src: "{{ temp_dir }}/pg-rex17-1.0-1.tar.gz"
+        dest: "{{ temp_dir }}"
+        remote_src: yes
+        list_files: yes
+      register: extract_result
+      when: tarball_stat.stat.exists and tarball_stat.stat.size > 0
+
+    # Show extracted files for debugging
+    - name: Show extracted files
+      debug:
+        msg: "First 10 extracted files: {{ (extract_result.files[:10] if extract_result.files|length > 10 else extract_result.files) | default(['No files extracted']) }}"
+      when: extract_result is defined and extract_result.files is defined
+
+    # List all files in temp directory recursively
+    - name: List all files in temp directory
+      shell: "find {{ temp_dir }} -type f -name '*.rpm' | sort"
+      register: all_files
+      changed_when: false
+      when: tarball_stat.stat is defined and tarball_stat.stat.exists
+
+    # Show all RPM files found
+    - name: Show all RPM files found
+      debug:
+        msg: "RPM files found: {{ all_files.stdout_lines }}"
+      when: all_files is defined and all_files.stdout_lines is defined
+
+    # Locate the pg-rex operation tools script RPM in the extracted directory
+    - name: Find pg-rex_operation_tools_script RPM in extracted files
+      find:
+        paths: "{{ temp_dir }}"
+        patterns: "pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm"
+        recurse: yes
+      register: pg_rex_script_find
+      when: tarball_stat.stat.exists
+        
+    # Locate the Net_OpenSSH RPM in the extracted directory
+    - name: Find Net_OpenSSH RPM in extracted files
+      find:
+        paths: "{{ temp_dir }}"
+        patterns: "Net_OpenSSH-0.62-1.el9.x86_64.rpm"
+        recurse: yes
+      register: net_openssh_find
+      when: tarball_stat.stat.exists
+
+    # Try to find RPM files with any name pattern if exact match not found
+    - name: Find any pg-rex operation tools script RPM
+      shell: "find {{ temp_dir }} -type f -name '*pg-rex*operation*script*.rpm' -o -name '*pg_rex*operation*script*.rpm'"
+      register: pg_rex_script_any
+      changed_when: false
+      when: pg_rex_script_find.matched == 0 and tarball_stat.stat.exists
+
+    - name: Find any Net_OpenSSH RPM
+      shell: "find {{ temp_dir }} -type f -name '*Net*OpenSSH*.rpm' -o -name '*Net_OpenSSH*.rpm' -o -name '*net*openssh*.rpm'"
+      register: net_openssh_any
+      changed_when: false
+      when: net_openssh_find.matched == 0 and tarball_stat.stat.exists
+
+    # Show files found with more flexible patterns if needed
+    - name: Show flexible pattern matches if needed
+      debug:
+        msg: 
+          - "PG-REX script matches: {{ pg_rex_script_any.stdout_lines | default([]) }}"
+          - "Net_OpenSSH matches: {{ net_openssh_any.stdout_lines | default([]) }}"
+      when: (pg_rex_script_find.matched == 0 or net_openssh_find.matched == 0) and tarball_stat.stat.exists
+
+    # Copy the found pg-rex operation tools script RPM to download directory
+    - name: Copy pg-rex_operation_tools_script RPM to download directory (exact match)
+      copy:
+        src: "{{ item.path }}"
+        dest: "{{ download_dir }}/pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm"
+        remote_src: yes
+      with_items: "{{ pg_rex_script_find.files }}"
+      when: pg_rex_script_find.matched > 0
+        
+    # Copy the found Net_OpenSSH RPM to download directory
+    - name: Copy Net_OpenSSH RPM to download directory (exact match)
+      copy:
+        src: "{{ item.path }}"
+        dest: "{{ download_dir }}/Net_OpenSSH-0.62-1.el9.x86_64.rpm"
+        remote_src: yes
+      with_items: "{{ net_openssh_find.files }}"
+      when: net_openssh_find.matched > 0
+
+    # Copy the found pg-rex operation tools script RPM to download directory if found with flexible pattern
+    - name: Copy pg-rex_operation_tools_script RPM to download directory (flexible match)
+      copy:
+        src: "{{ pg_rex_script_any.stdout_lines[0] }}"
+        dest: "{{ download_dir }}/pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm"
+        remote_src: yes
+      when: pg_rex_script_find.matched == 0 and pg_rex_script_any is defined and pg_rex_script_any.stdout_lines | length > 0
+
+    # Copy the found Net_OpenSSH RPM to download directory if found with flexible pattern
+    - name: Copy Net_OpenSSH RPM to download directory (flexible match)
+      copy:
+        src: "{{ net_openssh_any.stdout_lines[0] }}"
+        dest: "{{ download_dir }}/Net_OpenSSH-0.62-1.el9.x86_64.rpm"
+        remote_src: yes
+      when: net_openssh_find.matched == 0 and net_openssh_any is defined and net_openssh_any.stdout_lines | length > 0
+
+    # Clean up temporary directory
+    - name: Clean up temporary directory
+      file:
+        path: "{{ temp_dir }}"
+        state: absent
+        
+    # Verify that all required RPM packages were successfully downloaded
+    - name: Check if all RPMs are downloaded
+      stat:
+        path: "{{ download_dir }}/{{ item }}"
+      register: rpm_stat
+      with_items:
+        - pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm
+        - Net_OpenSSH-0.62-1.el9.x86_64.rpm
+        - perl-IO-Tty-1.16-4.el9.x86_64.rpm
+        
+    # Display a summary of which RPM packages were successfully downloaded
+    - name: Show download results
+      debug:
+        msg: "Downloaded RPMs: {{ rpm_stat.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item') | list }}"
+        
+    # Show warning for missing packages
+    - name: Show warning for missing packages
+      debug:
+        msg: "WARNING: Failed to download the following packages: {{ rpm_stat.results | rejectattr('stat.exists', 'equalto', true) | map(attribute='item') | list }}"
+      when: rpm_stat.results | rejectattr('stat.exists', 'equalto', true) | list | length > 0

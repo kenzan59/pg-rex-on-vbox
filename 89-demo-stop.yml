@@ -1,0 +1,26 @@
+# Stop Vagrant VMs after PG-REX shutdown is complete
+- name: Stop vagrant VMs
+  hosts: localhost
+  become: false
+  max_fail_percentage: 0
+  gather_facts: yes
+  
+  tasks:
+    # Execute vagrant halt on Linux/standard systems
+    - name: vagrant halt
+      shell: vagrant halt
+      when: "'microsoft-standard' not in ansible_kernel"
+      environment:
+        VAGRANT_CWD: "{{ playbook_dir }}/vagrant"
+        WSLENV: VAGRANT_CWD/p:http_proxy:https_proxy
+      
+    # Execute vagrant.exe halt on WSL2 systems  
+    - name: vagrant halt (for WSL2)
+      shell: vagrant.exe halt
+      when: "'microsoft-standard' in ansible_kernel"
+      environment:
+        VAGRANT_CWD: "{{ playbook_dir }}/vagrant"
+        WSLENV: VAGRANT_CWD/p:http_proxy:https_proxy
+
+# Stop VirtualBMC services after VMs are halted
+- import_playbook: "{{ playbook_dir }}/ansible-virtualbmc/90-vbmc-stop.yml"

@@ -1,0 +1,18 @@
+### configuration to use fence_ipmilan
+# disable ACPI soft-off
+- name: config /etc/systemd/logind.conf - disable ACPI soft-off
+  lineinfile:
+    dest="/etc/systemd/logind.conf"
+    regexp="{{ item.regexp }}"
+    line="{{ item.line }}"
+    state=present
+  with_items:
+    - { regexp: "HandlePowerKey=", line: "HandlePowerKey=ignore" }
+  register: logind_conf
+
+# can be moved to handlers
+- name: restart logind
+  service:
+    name: systemd-logind
+    state: restarted
+  when: logind_conf.changed

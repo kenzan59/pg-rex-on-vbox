@@ -1,0 +1,120 @@
+### 3.4.1 Install PostgreSQL packages
+
+# make sure an old version of PostgreSQL is absent
+#   ignore warnings about using yum instead of rpm;
+#   yum can not be used here because it would also erase postgresql11-libs if presented
+#   so it would be always "changed"
+- name: uninstall old version of PostgreSQL
+  shell: rpm -e postgresql-libs
+  args:
+    warn: false
+  register: rpm_rc
+  changed_when: rpm_rc is succeeded
+  failed_when: false
+
+- name: make sure the minor revision of PostgreSQL
+  set_fact:
+    pg_rev: '13.7-1PGDG'
+  when: pg_rev is not defined
+- name: extract major version number of PostgreSQL
+  set_fact:
+    pg_major: "{{ pg_rev | regex_replace('^(\\d*)\\..*', '\\1') }}"
+
+- name: copy PostgreSQL packages to the node
+  copy:
+    src="{{ item }}"
+    dest="/var/tmp/"
+  with_items:
+      # the order is significant - as each rpms will be installed in this order
+      - postgresql{{ pg_major }}-libs-{{ pg_rev }}.rhel9.x86_64.rpm
+      - postgresql{{ pg_major }}-{{ pg_rev }}.rhel9.x86_64.rpm
+      - postgresql{{ pg_major }}-server-{{ pg_rev }}.rhel9.x86_64.rpm
+      - postgresql{{ pg_major }}-contrib-{{ pg_rev }}.rhel9.x86_64.rpm
+      - postgresql{{ pg_major }}-docs-{{ pg_rev }}.rhel9.x86_64.rpm
+  register: rc_copy
+
+- name: install PostgreSQL packages
+  yum:
+    name: "{{ item.dest | default(item.path) }}"
+    update_cache: yes
+    disable_gpg_check: True
+    state: present
+  with_items: "{{ rc_copy.results }}"
+  loop_control:
+    label: "{{ item.dest | default(item.path) }}" # to suppress too verbose logs
+
+### allow communitation ports if firewalld is in use
+### firewall-cmd --permanent --add-service=postgresql
+### firewall-cmd --reload
+- name: check if firewalld is enabled
+  command: firewall-cmd --state
+  changed_when: false
+  failed_when: false
+  register: firewalld_state
+
+- name: allow postgresql communication through firewalld (permanent)
+  command: firewall-cmd --permanent --add-service=postgresql
+  register: result
+  changed_when: '"ALREADY_ENABLED" not in result.stderr'
+  when: firewalld_state.rc == 0
+
+- name: reload firewalld to apply permanent changes
+  command: firewall-cmd --reload
+  when:
+    - firewalld_state.rc == 0
+    - '"ALREADY_ENABLED" not in result.stderr'
+
+# Ensure the 'postgres' group exists with GID 26
+- name: Ensure postgres group has gid 26
+  group:
+    name: postgres
+    gid: 26
+    state: present
+    system: yes
+
+# Ensure the 'postgres' user exists with UID 26 and is assigned to GID 26
+- name: Ensure postgres user has uid 26 and belongs to gid 26
+  user:
+    name: postgres
+    uid: 26
+    group: postgres
+    state: present
+    system: yes
+
+# postgres user
+#
+## # passwd postgres
+#
+- name: set postgres user password
+  user:
+    name: postgres
+    password: "{{ PG_PASSWORD|password_hash('sha512') }}"
+
+### 3.4.2 Setup postgres user's environment
+# Ensure .ansible/tmp directory exists with correct permissions for postgres user
+- name: Create .ansible/tmp directory for postgres user to avoid Ansible warning
+  file:
+    path: /var/lib/pgsql/.ansible/tmp
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: '0700'
+
+- name: add PATH to postgres user environment
+  become: yes
+  become_user: postgres
+  lineinfile:
+    dest="/var/lib/pgsql/.bash_profile"
+    regexp="^export PATH=/usr/pgsql-{{ pg_major }}/bin:\$PATH"
+    line="export PATH=/usr/pgsql-{{ pg_major }}/bin:$PATH"
+    state=present
+    create=yes
+
+- name: add PGDATA to postgres user environment
+  become: yes
+  become_user: postgres
+  lineinfile:
+    dest="/var/lib/pgsql/.bash_profile"
+    regexp="^export PGDATA="
+    line="export PGDATA={{ PG_DATA }}"
+    state=present

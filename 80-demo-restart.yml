@@ -1,0 +1,20 @@
+### Restart vagrant VMs
+- hosts: localhost
+  become: false
+  max_fail_percentage: 0
+
+  tasks:
+    - name: vagrant up
+      shell: vagrant up
+      when: "'microsoft-standard' not in ansible_kernel"
+
+    - name: vagrant up (for WSL2)
+      shell: vagrant.exe up
+      when: "'microsoft-standard' in ansible_kernel"
+
+  environment:
+    VAGRANT_CWD: "{{ playbook_dir }}/vagrant"
+    WSLENV: VAGRANT_CWD/p:http_proxy:https_proxy
+
+### Restart VirtualBMC
+- import_playbook: "{{ playbook_dir }}/ansible-virtualbmc/20-vbmc-start.yml"

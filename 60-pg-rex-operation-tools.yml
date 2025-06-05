@@ -1,0 +1,2 @@
+- import_playbook: ./ansible-pg-rex-operation-tools/01-pg-rex-operation-tools-download.yml
+- import_playbook: ./ansible-pg-rex-operation-tools/10-pg-rex-operation-tools-setup.yml

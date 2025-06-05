@@ -1,0 +1,15 @@
+- name: Vagrant plugin install vagrant-proxyconf
+  shell: vagrant.exe plugin install vagrant-proxyconf
+  tags: init
+
+- name: Vagrant up
+  shell: vagrant.exe up
+  tags: up
+
+- name: Set SSH private_keys permissions properly for vagrant VMs
+  file:
+    path: "{{ item }}"
+    mode: '0600'
+  with_items:
+    - "{{ playbook_dir }}/vagrant/.vagrant/machines/pgrex01/virtualbox/private_key"
+    - "{{ playbook_dir }}/vagrant/.vagrant/machines/pgrex02/virtualbox/private_key"

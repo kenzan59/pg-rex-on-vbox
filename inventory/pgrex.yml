@@ -1,0 +1,106 @@
+all:
+  vars:
+    ### ansible-os-common-settings
+    s_lan_interface: eth1
+    d_lan_interface: eth2
+    ic_lan_interfaces:
+      - eth3
+      - eth4
+    m_lan_interface: eth5
+    system_locale: ja_JP.UTF-8
+    system_timezone: Asia/Tokyo
+
+    ### ansible-virtualbmc
+    VBMC_HYPERVISOR: vbox
+    VBMC_VERSION: devel-vbox-2.0
+    VBMC_VENV_DIR: ./venv-vbmc
+    VBMC_IPMI_IF: eth0
+    ### STONITH LAN
+    VBMC_WSL2_SUBNET_IP: 192.168.199.1
+
+    ### ansible-pacemaker
+    HACLUSTER_PASSWORD: pacemaker
+    CLUSTER_NAME: pgrex_cluster
+    FENCE_AGENTS: [fence_ipmilan]
+
+    ### ansible-postgresql
+    pg_rev: '17.4-1PGDG'
+
+    ### ansible-pg-rex-operation-tools
+    ### for perl-IO-Tty-1.16-4.el9.x86_64.rpm
+    rocky_repo_url: "https://dl.rockylinux.org/pub/rocky/9/devel/x86_64/os/Packages/p"
+    ### for Net_OpenSSH-0.62-1.el9.x86_64.rpm and pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm
+    pg_rex_tools_url: "https://github.com/ossc-db/PG-REX-tools/releases/download/PG-REX_17_1/pg-rex17-1.0-1.tar.gz"
+    ### Replication listener virtual IP address
+    PG_REPLICATION_ADDRESS: 192.168.77.201
+    PG_REPLICATION_USER: repuser
+    PG_REPLICATION_PASSWORD: reppasswd
+
+    ### ansible-resource-settings
+    ### Environment excel
+    ENVIRONMENT_EXCEL: "environment-excel.xlsx"
+    ### Environment excel sheet
+    ENVIRONMENT_EXCEL_SHEET: "RHEL9.4"
+    ### Environment csv
+    ENVIRONMENT_CSV: "pm_pcsgen_env.csv"
+    ### Virtual IP address for connecting to the primary side of PostgreSQL
+    PG_PRIMARY_VIRTUAL_IP_ADDRESS: 192.168.76.201 
+    ### Virtual IP address for connecting to the standby side of PostgreSQL
+    PG_STANDBY_VIRTUAL_IP_ADDRESS: 192.168.76.202
+    ### Netmask for S-LAN
+    S_LAN_NETMASK: 24
+    ### Netmask for D-LAN
+    D_LAN_NETMASK: 24
+    ### IP address of the network to be monitored (for ping resource)
+    S_LAN_DEFAULT_GATEWAY_IP_ADDRESS: 192.168.76.1
+    ### Device name to be monitored(for storage-mon resource)
+    MONITORED_DEVICE_NAME: "/dev/sda"
+
+  hosts:
+    pgrex01:
+      s_lan_addr: 192.168.76.101
+      d_lan_addr: 192.168.77.101
+      ic_lan1_addr: 192.168.78.101
+      ic_lan2_addr: 192.168.79.101
+      m_lan_addr: 192.168.80.101
+      ansible_host: 192.168.80.101
+      ansible_user: vagrant
+      ansible_ssh_private_key_file: ./vagrant/.vagrant/machines/pgrex01/virtualbox/private_key
+    pgrex02:
+      s_lan_addr: 192.168.76.102
+      d_lan_addr: 192.168.77.102
+      ic_lan1_addr: 192.168.78.102
+      ic_lan2_addr: 192.168.79.102
+      m_lan_addr: 192.168.80.102
+      ansible_host: 192.168.80.102
+      ansible_user: vagrant
+      ansible_ssh_private_key_file: ./vagrant/.vagrant/machines/pgrex02/virtualbox/private_key
+
+### ansible-virtualbmc
+hacluster_vbmc:
+  hosts:
+    pgrex01:
+      IPMI_IP: 192.168.199.91
+      IPMI_USER: pacemaker
+      IPMI_PASS: pacemakerpass1
+    pgrex02:
+      IPMI_IP: 192.168.199.92
+      IPMI_USER: pacemaker
+      IPMI_PASS: pacemakerpass1
+
+### ansible-pacemaker
+hacluster:
+  hosts:
+    pgrex01:
+    pgrex02:
+
+### ansible-pgrex
+hacluster_pgrex:
+  children:
+    hacluster:
+  vars:
+    PG_PASSWORD: postgres
+    PG_DATA: /dbfp/pgdata/data
+    PG_WAL: /dbfp/pgwal/pg_wal
+    PG_ARCHIVE: /dbfp/pgarch/arc1
+    PG_PORT: 5432

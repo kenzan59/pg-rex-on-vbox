@@ -1,0 +1,8 @@
+- hosts: localhost
+  connection: local
+  become: true
+  gather_facts: no
+
+  roles:
+    - role: edit-environment-excel
+      tags: config

@@ -1,0 +1,7 @@
+- hosts: hacluster
+  become: true
+  gather_facts: no
+  max_fail_percentage: 0
+
+  roles:
+    - role: pacemaker-start

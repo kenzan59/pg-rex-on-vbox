@@ -1,0 +1,6 @@
+- hosts: hacluster
+  become: true
+  max_fail_percentage: 0
+
+  roles:
+    - role: pacemaker-install

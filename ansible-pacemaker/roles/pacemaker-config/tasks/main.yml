@@ -1,0 +1,17 @@
+### /etc/sysconfig/pacemaker configuration
+# enable fail_fast policy
+- name: config /etc/sysconfig/pacemaker - fail_fast policy
+  lineinfile:
+    dest="/etc/sysconfig/pacemaker"
+    regexp="{{ item.regexp }}"
+    line="{{ item.line }}"
+    state=present
+  with_items:
+    - { regexp: "PCMK_fail_fast=", line: "PCMK_fail_fast=yes" }
+    - { regexp: "PCMK_panic_action=", line: "PCMK_panic_action=sync-reboot" }
+
+- include_tasks: fence_ipmilan.yml
+  when: FENCE_AGENTS is defined and 'fence_ipmilan' in FENCE_AGENTS
+# TODO:
+#- include_tasks: fence_sbd.yml
+#  when: FENCE_AGENTS is defined and 'fence_sbd' in FENCE_AGENTS

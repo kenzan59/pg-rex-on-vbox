@@ -1,0 +1,41 @@
+### 3.5.1. Install pg-rex-operation-tools
+# Copy all RPM packages to /var/tmp directory at once
+- name: Copy all PG-REX operation tools RPM packages to nodes
+  copy:
+    src: "{{ item }}"
+    dest: /var/tmp/
+  with_items:
+    - pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm
+    - Net_OpenSSH-0.62-1.el9.x86_64.rpm
+    - perl-IO-Tty-1.16-4.el9.x86_64.rpm
+  register: rpm_copy
+
+# Install all RPM packages together using dnf command
+- name: Install all PG-REX operation tools RPM packages
+  dnf:
+    name:
+      - /var/tmp/pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm
+      - /var/tmp/Net_OpenSSH-0.62-1.el9.x86_64.rpm
+      - /var/tmp/perl-IO-Tty-1.16-4.el9.x86_64.rpm
+    disable_gpg_check: True
+    state: present
+
+### Install lsof perl-File-Compare
+### The PG-REX user manual does not mention it,
+### but the pg rex operation tools require lsof and perl-File-Compare packages
+- name: Install lsof and perl-File-Compare
+  dnf:
+    name: ['lsof', 'perl-File-Compare']
+    #enablerepo: highavailability
+    state: present
+
+# Verify installation of all packages
+- name: Verify installed packages
+  shell: "rpm -qa | grep -E 'perl-IO-Tty|Net_OpenSSH|pg-rex|lsof|perl-File-Compare'"
+  register: installed_packages
+  changed_when: false
+
+# Display the list of installed packages
+- name: Display installed packages
+  debug:
+    msg: "{{ installed_packages.stdout_lines }}"

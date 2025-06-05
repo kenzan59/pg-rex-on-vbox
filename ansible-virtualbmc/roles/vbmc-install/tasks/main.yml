@@ -1,0 +1,38 @@
+- include_tasks: install-centos.yml
+  when: ansible_os_family == 'RedHat'
+  tags: always
+- include_tasks: install-darwin.yml
+  when: ansible_os_family == 'Darwin'
+  tags: always
+- include_tasks: install-wsl2.yml
+  when: ansible_os_family == 'Debian' and 'microsoft-standard' in ansible_kernel
+  tags: always
+
+### common tasks for installation
+- name: configuration directory
+  file:
+    path: $HOME/.vbmc
+    state: directory
+
+- name: copy configuration file
+  copy:
+    src: virtualbmc.conf
+    dest: $HOME/.vbmc/virtualbmc.conf
+
+- name: workaround for an error in _io_wait workaround code
+  lineinfile:
+    path: $HOME/.vbmc/virtualbmc.conf
+    regex: '^session_timeout:'
+    insertafter: '\[ipmi\]'
+    line: 'session_timeout: 300'
+    state: present
+  when: WORKAROUND_SESSION_TIMEOUT is defined
+
+- name: add vbox_user configuration
+  lineinfile:
+    path: $HOME/.vbmc/virtualbmc.conf
+    regex: '^vbox_user:'
+    insertafter: '\[vbox\]'
+    line: 'vbox_user: {{ ansible_env.SUDO_USER }}'
+    state: present
+  when: ansible_env.SUDO_USER is defined

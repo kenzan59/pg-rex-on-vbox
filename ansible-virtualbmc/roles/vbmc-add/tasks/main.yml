@@ -1,0 +1,6 @@
+- name: add and start for each hacluster nodes
+  include_tasks: add-node.yml
+  with_items: "{{ groups['hacluster_vbmc'] }}"
+  loop_control:
+    loop_var: nodename
+  tags: always

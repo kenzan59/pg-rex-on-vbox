@@ -1,0 +1,46 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  # RockyLinux 9.5
+  config.vm.box = "rockylinux/9"
+  config.vm.box_version = "5.0.0"
+  config.vm.box_check_update = false
+
+  # VirtualBox node common settings
+  config.vm.provider :virtualbox do |vb|
+    vb.memory = 4096
+    vb.customize ["modifyvm", :id, "--firmware", "efi"]
+    vb.customize ["modifyvm", :id, "--ioapic", "on"]
+    vb.customize ["modifyvm", :id, "--vram", "16"]
+    vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
+    vb.customize ["modifyvm", :id, "--vrde", "off"]
+  end
+
+  # Proxy configuration
+  if Vagrant.has_plugin?("vagrant-proxyconf") && ENV['http_proxy']
+    config.proxy.http = ENV['http_proxy']
+    config.proxy.https = ENV['https_proxy']
+    config.proxy.no_proxy = ENV['no_proxy'] || "localhost,127.0.0.1"
+  end
+
+  # Disable the default shared folder to avoid vboxsf failure
+  config.vm.synced_folder ".", "/vagrant", disable: true
+
+  # Each node settings
+  nodes = ["pgrex01", "pgrex02"]
+  nodes.each_with_index do |item, i|
+    config.vm.define item do |node|
+      node.vm.hostname = item
+      node.vm.network "private_network", ip: "192.168.76.#{101 + i}" # S-LAN (Service LAN)
+      node.vm.network "private_network", ip: "192.168.77.#{101 + i}", virtualbox__intnet: "D-LAN" # D-LAN
+      node.vm.network "private_network", ip: "192.168.78.#{101 + i}", virtualbox__intnet: "IC-LAN01" # IC-LAN01
+      node.vm.network "private_network", ip: "192.168.79.#{101 + i}", virtualbox__intnet: "IC-LAN02" # IC-LAN02
+      node.vm.network "private_network", ip: "192.168.80.#{101 + i}" # M-LAN (Management LAN)
+      node.vm.network "forwarded_port", id: "ssh", guest: 22, host: "#{2231 + i}"
+      node.vm.provider :virtualbox do |vb|
+        vb.name = item
+      end
+    end
+  end
+end

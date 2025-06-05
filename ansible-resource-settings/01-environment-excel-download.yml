@@ -1,0 +1,113 @@
+- hosts: localhost
+  connection: local
+  become: false
+  gather_facts: no
+
+  vars:
+    download_dir: "{{ playbook_dir }}/roles/edit-environment-excel/files"
+    temp_dir: "/tmp/environment-excel"
+    tarball_gz: "{{ temp_dir }}/pg-rex17-1.0-1.tar.gz"
+    tarball_gz_extract_dir: "{{ temp_dir }}/untarred"
+    extracted_inner: "{{ tarball_gz_extract_dir }}"
+
+  tasks:
+    # Ensure the necessary directories for downloads and extraction exist
+    - name: Ensure all required directories exist
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ download_dir }}"
+        - "{{ temp_dir }}"
+        - "{{ tarball_gz_extract_dir }}"
+
+    # Download the PG-REX tools tarball archive from the specified URL
+    - name: Download PG-REX tools tarball
+      get_url:
+        url: "{{ pg_rex_tools_url }}"
+        dest: "{{ tarball_gz }}"
+        timeout: 120
+        force: yes
+        validate_certs: no
+        use_proxy: yes
+        http_agent: "Mozilla/5.0"
+      register: pg_rex_download
+      retries: 3
+      delay: 5
+      until: pg_rex_download is succeeded
+
+    # Extract the downloaded .tar.gz archive into the extraction directory
+    - name: Extract .tar.gz file using tar command
+      shell: "tar -xzf {{ tarball_gz }} -C {{ tarball_gz_extract_dir }}"
+
+    # Find all ZIP files in the extracted directory and sort the list
+    - name: Find ZIP files
+      shell: "find {{ tarball_gz_extract_dir }} -type f -name '*.zip' | sort"
+      register: zip_files
+      changed_when: false
+
+    # Display the list of found ZIP files for debugging purposes
+    - name: Display found zip files
+      debug:
+        var: zip_files.stdout_lines
+
+    # Set a fact variable with the first found ZIP file path, if any exist
+    - name: Set zip_file_path variable
+      set_fact:
+        zip_file_path: "{{ zip_files.stdout_lines[0] }}"
+      when: zip_files.stdout_lines | length > 0
+
+    # Create a directory for extracting the contents of the ZIP file
+    - name: Create doc extraction directory
+      file:
+        path: "{{ tarball_gz_extract_dir }}/extracted_docs"
+        state: directory
+        mode: '0755'
+      when: zip_files.stdout_lines | length > 0
+
+    # Extract the ZIP file with specified encoding to handle Japanese characters correctly
+    - name: Extract ZIP file using unzip command with encoding option
+      shell: "unzip -o -O CP932 {{ zip_file_path }} -d {{ tarball_gz_extract_dir }}/extracted_docs"
+      when: zip_files.stdout_lines | length > 0
+
+    # Search recursively for Excel (.xlsx) files in the extracted documents directory
+    - name: Find Excel files (recursive search)
+      shell: "find {{ tarball_gz_extract_dir }} -type f -name '*.xlsx'"
+      register: excel_files
+      changed_when: false
+
+    # Display the found Excel files for verification/debugging
+    - name: Display found Excel files
+      debug:
+        var: excel_files.stdout_lines
+
+    # Copy the found Excel file to a simplified file name in the same directory
+    - name: Copy Excel file to simplified name
+      command: >
+        cp "{{ excel_files.stdout_lines[0] }}" "{{ excel_files.stdout_lines[0] | dirname }}/{{ ENVIRONMENT_EXCEL }}"
+      register: copy_excel_result
+      when: excel_files.stdout_lines | length > 0
+
+    # Set a fact with the path of the newly copied simplified Excel file
+    - name: Set fact for simplified Excel file path
+      set_fact:
+        temp_excel_path: "{{ excel_files.stdout_lines[0] | regex_replace('^(.*)/[^/]+$', '\\1') }}/{{ ENVIRONMENT_EXCEL }}"
+      when: excel_files.stdout_lines | length > 0
+
+    # Copy the renamed Excel file from the temporary location to the roles directory
+    - name: Copy renamed Excel file to roles directory
+      copy:
+        src: "{{ temp_excel_path }}"
+        dest: "{{ download_dir }}/{{ ENVIRONMENT_EXCEL }}"
+        remote_src: no
+      when: excel_files.stdout_lines | length > 0 and temp_excel_path != ""
+
+    # Clean up temporary downloaded and extracted files/directories to free up space
+    - name: Clean up temporary files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ tarball_gz }}"
+        - "{{ tarball_gz_extract_dir }}"

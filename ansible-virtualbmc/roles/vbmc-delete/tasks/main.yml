@@ -1,0 +1,6 @@
+- name: stop and delete for each hacluster nodes
+  include_tasks: delete-node.yml
+  with_items: "{{ groups['hacluster_vbmc'] }}"
+  loop_control:
+    loop_var: nodename
+  tags: always

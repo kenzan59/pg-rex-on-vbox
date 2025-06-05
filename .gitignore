@@ -1,0 +1,54 @@
+# Bytecode & logs
+*.pyc
+*.log
+*.rpm
+*.pub
+*.xlsx
+*.csv
+
+# SSH key files - Never commit private keys
+/root/.ssh/id_rsa
+/root/.ssh/id_rsa.pub
+/root/.ssh/known_hosts
+
+# Ansible temporary files
+*.retry
+
+# Editor swap files
+*.swp
+*.swo
+
+# Mac/Linux system files
+.DS_Store
+
+# Python virtual environments
+.env/
+.venv/
+__pycache__/
+ansible-virtualbmc/venv-vbmc/
+ansible-resource-settings/venv-resource-settings/
+
+# Ansible Vault password file (if used)
+.vault_pass.txt
+
+# Vagrant directory
+.vagrant/
+
+# VS Code settings
+.vscode/
+
+# Personal memo
+memo.md
+
+# Inventory files (local-only)
+inventory/osc2022fall.yml
+inventory/all.yml
+
+# Sample or deprecated task files
+ansible-postgresql/roles/postgresql-config/tasks/main-old.yml
+
+# VirtualBMC Vagrant environment
+ansible-virtualbmc/virtualbmc-vbox/
+
+# Temporary SSH scan output (PG-REX operation tools)
+ansible-pg-rex-operation-tools/roles/pg-rex-operation-tools-config/files/

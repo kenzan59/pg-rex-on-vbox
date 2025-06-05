@@ -1,0 +1,14 @@
+# Copy the environment CSV file to the target node
+- name: Copy environment CSV file to pgrex01
+  copy:
+    src: "{{ ENVIRONMENT_CSV }}"
+    dest: "/root/{{ ENVIRONMENT_CSV }}"
+    owner: root
+    group: root
+    mode: '0644'
+
+# Convert the CSV to XML using the pm_pcsgen command
+- name: Convert CSV to XML using pm_pcsgen
+  command: "pm_pcsgen {{ ENVIRONMENT_CSV }}"
+  args:
+    chdir: /root

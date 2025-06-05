@@ -1,0 +1,2 @@
+- import_playbook: ./ansible-virtualbmc/10-vbmc-install.yml
+- import_playbook: ./ansible-virtualbmc/20-vbmc-start.yml

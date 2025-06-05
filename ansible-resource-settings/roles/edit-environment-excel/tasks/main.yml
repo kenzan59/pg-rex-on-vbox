@@ -1,0 +1,71 @@
+# Set a variable for virtualenv path in Linux native path
+- name: Set virtualenv path
+  set_fact:
+    venv_path: "{{ playbook_dir }}/venv-resource-settings"
+
+# Ensure python3 and venv are installed
+- name: Ensure python3 and venv are installed
+  package:
+    name:
+      - python3
+      - python3-venv
+    state: present
+
+# Create Python virtual environment for resource settings
+- name: Create Python virtual environment for resource settings
+  command: python3 -m venv {{ venv_path }}
+  args:
+    creates: "{{ venv_path }}/bin/activate"
+
+# Install pandas and openpyxl in the virtual environment
+- name: Install pandas and openpyxl in venv-resource-settings
+  command: "{{ venv_path }}/bin/pip install pandas openpyxl"
+
+# Run the Excel to CSV conversion script using the virtual environment
+- name: Run xlsx-to-csv converter
+  command: >
+    {{ venv_path }}/bin/python
+    {{ playbook_dir }}/xlsx-to-csv.py
+    --excel {{ playbook_dir }}/roles/edit-environment-excel/files/{{ ENVIRONMENT_EXCEL }}
+    --sheet {{ ENVIRONMENT_EXCEL_SHEET }}
+    --csv {{ playbook_dir }}/roles/transfer-environment-csv/files/{{ ENVIRONMENT_CSV }}
+  args:
+    chdir: "{{ playbook_dir }}"
+
+# Set cell assignments for environment CSV
+- name: Set cell assignments for environment CSV
+  set_fact:
+    environment_csv_cell_values: >-
+      --set F77={{ PG_PRIMARY_VIRTUAL_IP_ADDRESS }}
+      --set F78={{ s_lan_interface }}
+      --set F79={{ S_LAN_NETMASK }}
+      --set F93={{ PG_REPLICATION_ADDRESS }}
+      --set F94={{ d_lan_interface }}
+      --set F95={{ D_LAN_NETMASK }}
+      --set F110={{ PG_STANDBY_VIRTUAL_IP_ADDRESS }}
+      --set F111={{ s_lan_interface }}
+      --set F112={{ S_LAN_NETMASK }}
+      --set F135={{ PG_REPLICATION_ADDRESS }}
+      --set F137={{ PG_REPLICATION_USER }}
+      --set F159={{ S_LAN_DEFAULT_GATEWAY_IP_ADDRESS }}
+      --set F176={{ MONITORED_DEVICE_NAME }}
+      --set F192={{ groups['hacluster_vbmc'][0] }}
+      --set F193={{ hostvars[groups['hacluster_vbmc'][0]]['IPMI_IP'] }}
+      --set F194="{{ hostvars[groups['hacluster_vbmc'][0]]['IPMI_USER'] | quote }}"
+      --set F195="{{ hostvars[groups['hacluster_vbmc'][0]]['IPMI_PASS'] | quote }}"
+      --set F210={{ groups['hacluster_vbmc'][1] }}
+      --set F211={{ hostvars[groups['hacluster_vbmc'][1]]['IPMI_IP'] }}
+      --set F212="{{ hostvars[groups['hacluster_vbmc'][1]]['IPMI_USER'] | quote }}"
+      --set F213="{{ hostvars[groups['hacluster_vbmc'][1]]['IPMI_PASS'] | quote }}"
+      --set F226={{ groups['hacluster_vbmc'][0] }}
+      --set F227={{ groups['hacluster_vbmc'][1] }}
+
+# Run the CSV editing script to insert values into designated cells
+- name: Edit CSV using venv-resource-settings
+  command: >
+    {{ venv_path }}/bin/python
+    {{ playbook_dir }}/edit-environment-csv.py
+    --csv {{ playbook_dir }}/roles/transfer-environment-csv/files/{{ ENVIRONMENT_CSV }}
+    {{ environment_csv_cell_values }}
+  args:
+    chdir: "{{ playbook_dir }}"

@@ -1,0 +1,2 @@
+- name: stop Pacemaker cluster
+  command: pcs cluster stop --force

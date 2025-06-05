@@ -1,0 +1,25 @@
+- hosts: localhost
+  connection: local
+  become: false
+  gather_facts: no
+
+  tasks:
+    - name: make sure the minor revision of PostgreSQL
+      set_fact:
+        pg_rev: '13.7-1PGDG'
+      when: pg_rev is not defined
+    - name: extract major version number of PostgreSQL
+      set_fact:
+        pg_major: "{{ pg_rev | regex_replace('^(\\d*)\\..*', '\\1') }}"
+
+    - name: Download PostgreSQL {{ pg_major }} packages
+      get_url:
+        url="https://yum.postgresql.org/{{ pg_major }}/redhat/rhel-9-x86_64/{{ item }}"
+        dest={{ playbook_dir }}/roles/postgresql-install/files/
+        timeout=60
+      with_items:
+        - postgresql{{ pg_major }}-libs-{{ pg_rev }}.rhel9.x86_64.rpm
+        - postgresql{{ pg_major }}-{{ pg_rev }}.rhel9.x86_64.rpm
+        - postgresql{{ pg_major }}-server-{{ pg_rev }}.rhel9.x86_64.rpm
+        - postgresql{{ pg_major }}-contrib-{{ pg_rev }}.rhel9.x86_64.rpm
+        - postgresql{{ pg_major }}-docs-{{ pg_rev }}.rhel9.x86_64.rpm

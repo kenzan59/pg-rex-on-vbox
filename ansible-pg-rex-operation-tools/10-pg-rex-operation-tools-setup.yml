@@ -1,0 +1,11 @@
+- hosts: hacluster_pgrex
+  become: true
+  max_fail_percentage: 0
+  gather_facts: no
+
+  roles:
+    - role: pg-rex-operation-tools-install
+      tags: install
+
+    - role: pg-rex-operation-tools-config
+      tags: config

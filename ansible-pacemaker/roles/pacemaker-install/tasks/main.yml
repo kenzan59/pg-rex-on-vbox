@@ -1,0 +1,109 @@
+### 3.3. Pacemaker
+
+### yum install pcs pacemaker fence-agents-all
+- name: install Pacemaker packages
+  yum:
+    name: ['pcs', 'pacemaker', 'fence-agents-all']
+    enablerepo: highavailability
+    state: present
+
+### allow communitation ports if firewalld is in use
+### firewall-cmd --permanent --add-service=high-availability
+### firewall-cmd --reload
+- name: check if firewalld is enabled
+  command: firewall-cmd --state
+  changed_when: false
+  failed_when: false
+  register: firewalld_state
+
+- name: allow Pacemaker/Corosync communication through firewalld (permanent)
+  command: firewall-cmd --permanent --add-service=high-availability
+  register: result
+  changed_when: '"ALREADY_ENABLED" not in result.stderr'
+  when: firewalld_state.rc == 0
+
+- name: reload firewalld to apply permanent changes
+  command: firewall-cmd --reload
+  when:
+    - firewalld_state.rc == 0
+    - '"ALREADY_ENABLED" not in result.stderr'
+
+### 3.3.4 hacluster user
+### passwd hacluster
+- name: set hacluster user password
+  user:
+    name: hacluster
+    password: "{{ HACLUSTER_PASSWORD|password_hash('sha512') }}"
+
+### enable pcsd service
+- name: enable pcsd service
+  service:
+    name: pcsd.service
+    state: started
+    enabled: yes
+
+### Additional steps for proxy environment
+# this step is not described in the official documents but
+# is necessary on the proxy environment
+## # vi /etc/environment # add no_proxy=NODE1,NODE2,...
+- name: compose no_proxy list
+  set_fact:
+    NO_PROXY_LIST: >-
+      {%- for node in groups['hacluster']|sort -%}
+        {{ node }},{{ hostvars[node]['m_lan_addr']}},
+      {%- endfor -%}
+- name: add no_proxy for pcs communication
+  lineinfile:
+    path: /etc/environment
+    line: "{{ item }}={{ NO_PROXY_LIST }}{{ ansible_env.no_proxy | default('') }}"
+    regexp: "^{{ item }}="
+    state: present
+  with_items:
+    - no_proxy
+    - NO_PROXY
+  when: ansible_env.https_proxy is defined or ansible_env.HTTPS_PROXY is defined
+- name: check if using vagrant-proxyconf
+  stat:
+    path: /etc/profile.d/proxy.sh
+  register: vagrant_proxyconf
+- name: add no_proxy for pcs communication (for vagrant-proxyconf)
+  lineinfile:
+    path: /etc/profile.d/proxy.sh
+    line: "export {{ item }}={{ NO_PROXY_LIST }}{{ ansible_env.no_proxy | default('') }}"
+    regexp: "^export {{ item }}="
+    state: present
+  with_items:
+    - no_proxy
+    - NO_PROXY
+  when: vagrant_proxyconf.stat.exists and ansible_env.https_proxy is defined or ansible_env.HTTPS_PROXY is defined
+
+### cluster authentication
+### pcs host auth NODE1 addr=... NODE2 addr=... -u hacluster -p PASSWORD
+#  WARN: password will be appeared on the command line. Be secure!
+- name: cluster authentication
+  command: >
+    pcs host auth
+    {% for node in groups['hacluster']|sort %}
+      {{ node }} addr={{ hostvars[node]['m_lan_addr'] }}
+    {% endfor %}
+    -u hacluster -p {{ HACLUSTER_PASSWORD }}
+  when: inventory_hostname == ansible_play_hosts[0]
+
+### 4.2 Creating a high availaility cluster
+# skip this section - this playbook assumes a multiple links configuration
+
+### 4.3 Creating a high availability cluster with multiple links
+#
+## # pcs cluster setup NODE1 addr=LINK0 addr=LINK1 NODE2 addr=LINK0 addr=LINK1
+#
+# Note: currently assumes 2 nodes / 2 links configuration
+#       --force to override even if the cluster is already configured
+#
+#- name: cluster setup
+#  command: >
+#    pcs cluster setup {{ CLUSTER_NAME }}
+#    {% for node in groups['hacluster']|sort %}
+#      {{ node }} addr={{ hostvars[node]['ic_lan1_addr'] }} addr={{ hostvars[node]['ic_lan2_addr'] }}
+#    {% endfor %}
+#    --force
+#  when: inventory_hostname == ansible_play_hosts[0]

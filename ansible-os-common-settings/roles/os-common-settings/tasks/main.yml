@@ -1,0 +1,53 @@
+# Raw module used for bootstrap: install Python 3 if missing (required by Ansible)
+- name: Ensure Python 3 is installed
+  raw: which python3 || (yum -qy install python3 && exit 100)
+  register: _yum
+  changed_when: _yum.rc != 0
+  failed_when: _yum.rc not in [0, 100]
+
+# Required after ensuring Python is available
+- name: Gather system facts
+  setup:
+
+# Retrieves the list of installed locales on the system
+- name: Check installed locales
+  command: localectl list-locales
+  register: _localectl_list_locales
+  changed_when: false
+
+# Installs glibc-langpack-<lang> if not already present (e.g., glibc-langpack-ja)
+- name: Install required locale package
+  yum:
+    name: "glibc-langpack-{{ system_locale.split('_')[0] }}"
+  when: system_locale not in _localectl_list_locales.stdout_lines
+
+# Reads current locale settings for comparison
+- name: Get current locale configuration
+  command: localectl
+  register: _localectl
+  changed_when: false
+
+# Sets system locale only if it differs from the desired value
+- name: Set system locale if not already set
+  command: "localectl set-locale LANG={{ system_locale }}"
+  when: "'System Locale: LANG=' + system_locale not in _localectl.stdout"
+
+# Reads current timezone settings for comparison
+- name: Get current timezone configuration
+  command: timedatectl
+  register: _timedatectl
+  changed_when: false
+
+# Sets timezone only if it differs from the desired setting
+- name: Set system timezone if not already set
+  command: "timedatectl set-timezone {{ system_timezone }}"
+  when: "'Time zone: ' + system_timezone not in _timedatectl.stdout"
+
+# Writes all inventory hosts' IPs and names into /etc/hosts using m_lan_addr from inventory
+- name: Add host entries to /etc/hosts
+  blockinfile:
+    path: /etc/hosts
+    block: |
+      {% for item in groups.all %}
+      {{ hostvars[item].m_lan_addr }} {{ item }} {{ item }}
+      {% endfor %}

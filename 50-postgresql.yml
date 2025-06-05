@@ -1,0 +1,2 @@
+- import_playbook: ./ansible-postgresql/01-postgresql-download.yml
+- import_playbook: ./ansible-postgresql/10-postgresql-setup.yml

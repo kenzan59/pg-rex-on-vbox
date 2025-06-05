@@ -1,0 +1,7 @@
+- name: vagrant plugin install vagrant-proxyconf
+  shell: vagrant plugin install vagrant-proxyconf
+  tags: init
+
+- name: vagrant up
+  shell: vagrant up
+  tags: up

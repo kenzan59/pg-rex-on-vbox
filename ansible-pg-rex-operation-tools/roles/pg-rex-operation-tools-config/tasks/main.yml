@@ -1,0 +1,105 @@
+### 3.5.2. Edit pg-rex_tools.conf for PG-REX operation tools
+
+# Extract the major version number from pg_rev (e.g., "17" from "17.4-1PGDG")
+- name: Extract major version number of PostgreSQL
+  set_fact:
+    pg_major: "{{ pg_rev | regex_replace('^(\\d+)\\..*', '\\1') }}"
+
+# Generate comma-separated list of D-LAN IP addresses
+- name: Set D_LAN_IPAddress
+  set_fact:
+    pg_d_lan_ips: "{{ hostvars['pgrex01'].d_lan_addr }}, {{ hostvars['pgrex02'].d_lan_addr }}"
+
+# Generate IC_LAN_IPAddress string in (ip1, ip2), (ip3, ip4) format
+- name: Set IC_LAN_IPAddress
+  set_fact:
+    pg_ic_lan_ips: >-
+      ({{ hostvars['pgrex01'].ic_lan1_addr }}, {{ hostvars['pgrex02'].ic_lan1_addr }}),
+      ({{ hostvars['pgrex01'].ic_lan2_addr }}, {{ hostvars['pgrex02'].ic_lan2_addr }})
+
+# Write key-value entries to /etc/pg-rex_tools.conf
+- name: Update pg-rex_tools.conf file
+  lineinfile:
+    path: /etc/pg-rex_tools.conf
+    regexp: '^{{ item.key }}\s*='
+    line: '{{ item.key }} = {{ item.value }}'
+    create: yes
+    backrefs: no
+  loop:
+    - { key: 'D_LAN_IPAddress', value: '{{ pg_d_lan_ips }}' }
+    - { key: 'IC_LAN_IPAddress', value: '{{ pg_ic_lan_ips }}' }
+    - { key: 'Archive_dir', value: '{{ PG_ARCHIVE }}' }
+    - { key: 'IPADDR_STANDBY', value: 'enable' }
+    - { key: 'HACLUSTER_NAME', value: '{{ CLUSTER_NAME }}' }
+    - { key: 'PGPATH', value: '/usr/pgsql-{{ pg_major }}/bin' }
+    - { key: 'PEER_NODE_SSH_PASS_MODE', value: 'nopass' }
+    - { key: 'BACKUP_NODE_SSH_PASS_MODE', value: 'nopass' }
+
+### 3.5.3. Register peer SSH keys for root over D-LAN with idempotency
+
+# Ensure the /root/.ssh directory exists on each host
+- name: Ensure /root/.ssh directory exists
+  file:
+    path: /root/.ssh
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+# Generate SSH key pair for root if not already present
+- name: Generate SSH key pair for root if not exists
+  openssh_keypair:
+    path: /root/.ssh/id_rsa
+    type: rsa
+    size: 4096
+    owner: root
+    group: root
+    mode: '0600'
+  register: ssh_keygen_result
+
+# Read root's public key for later distribution
+- name: Read this host's root public key
+  slurp:
+    src: /root/.ssh/id_rsa.pub
+  register: this_root_pubkey
+
+# Define peer node names (excluding self)
+- name: Define peer_nodes list (excluding self)
+  set_fact:
+    peer_nodes: "{{ groups['hacluster_pgrex'] | difference([inventory_hostname]) }}"
+
+# Define D-LAN addresses of peer nodes
+- name: Extract peer D-LAN IP addresses
+  set_fact:
+    peer_d_lan_addrs: "{{ peer_nodes | map('extract', hostvars, 'd_lan_addr') | list }}"
+
+# ssh-keyscan peers from each host and capture results
+- name: Scan and collect peer SSH host keys from each host
+  vars:
+    peer_ip: "{{ hostvars[item].d_lan_addr }}"
+  command: ssh-keyscan -H {{ peer_ip }}
+  register: ssh_keyscan_output
+  changed_when: false
+  loop: "{{ peer_nodes }}"
+  when: hostvars[item].d_lan_addr is defined
+
+# Append peer's host key to this host's known_hosts
+- name: Register scanned SSH host keys to known_hosts
+  no_log: true
+  lineinfile:
+    path: /root/.ssh/known_hosts
+    line: "{{ item.stdout }}"
+    create: yes
+    state: present
+  loop: "{{ ssh_keyscan_output.results }}"
+  when: item.stdout is defined and item.stdout != ""
+
+# Register this host's public key to peer authorized_keys
+- name: Add this host's root public key to peers' authorized_keys
+  authorized_key:
+    user: root
+    key: "{{ this_root_pubkey.content | b64decode }}"
+    state: present
+    manage_dir: true
+  delegate_to: "{{ item }}"
+  loop: "{{ peer_nodes }}"
