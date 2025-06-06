@@ -22,16 +22,16 @@
     # Download the perl-IO-Tty RPM package directly from Rocky Linux repository
     - name: Download perl-IO-Tty RPM directly from Rocky Linux repo
       get_url:
-        url: "{{ perl_io_tty_rpm_url }}"
-        dest: "{{ download_dir }}/{{ perl_io_tty_rpm_url.split('/')[-1] }}"
+        url: "{{ PERL_IO_TTY_RPM_URL }}"
+        dest: "{{ download_dir }}/{{ PERL_IO_TTY_RPM_URL.split('/')[-1] }}"
         timeout: 60
       register: perl_io_download
         
     # Download the tarball containing the PG-REX tools and dependencies
     - name: Download PG-REX tools tarball
       get_url:
-        url: "{{ pg_rex_tools_url }}"
-        dest: "{{ temp_dir }}/{{ pg_rex_tools_url.split('/')[-1] }}"
+        url: "{{ PG_REX_TOOLS_URL }}"
+        dest: "{{ temp_dir }}/{{ PG_REX_TOOLS_URL.split('/')[-1] }}"
         timeout: 120
         force: yes
         validate_certs: no
@@ -46,7 +46,7 @@
     # Check if file exists after download attempts
     - name: Check if tarball was downloaded by either method
       stat:
-        path: "{{ temp_dir }}/{{ pg_rex_tools_url.split('/')[-1] }}"
+        path: "{{ temp_dir }}/{{ PG_REX_TOOLS_URL.split('/')[-1] }}"
       register: tarball_stat
 
     # Debug tarball size if it exists
@@ -58,7 +58,7 @@
     # Extract the downloaded tarball to access its contents
     - name: Extract PG-REX tools tarball
       unarchive:
-        src: "{{ temp_dir }}/{{ pg_rex_tools_url.split('/')[-1] }}"
+        src: "{{ temp_dir }}/{{ PG_REX_TOOLS_URL.split('/')[-1] }}"
         dest: "{{ temp_dir }}"
         remote_src: yes
         list_files: yes
@@ -88,7 +88,7 @@
     - name: Find pg-rex_operation_tools_script RPM in extracted files
       find:
         paths: "{{ temp_dir }}"
-        patterns: "{{ pg_rex_operation_tools_script_rpm }}"
+        patterns: "{{ PG_REX_OPERATION_TOOLS_SCRIPT_RPM }}"
         recurse: yes
       register: pg_rex_script_find
       when: tarball_stat.stat.exists
@@ -97,20 +97,20 @@
     - name: Find Net_OpenSSH RPM in extracted files
       find:
         paths: "{{ temp_dir }}"
-        patterns: "{{ net_openssh_rpm }}"
+        patterns: "{{ NET_OPENSSH_RPM }}"
         recurse: yes
       register: net_openssh_find
       when: tarball_stat.stat.exists
 
     # Copy the found pg-rex operation tools script RPM to download directory
     - name: Copy pg-rex_operation_tools_script RPM to download directory
-      shell: "cp '{{ item.path }}' '{{ download_dir }}/{{ pg_rex_operation_tools_script_rpm }}'"
+      shell: "cp '{{ item.path }}' '{{ download_dir }}/{{ PG_REX_OPERATION_TOOLS_SCRIPT_RPM }}'"
       with_items: "{{ pg_rex_script_find.files }}"
       when: pg_rex_script_find.matched > 0
         
     # Copy the found Net_OpenSSH RPM to download directory
     - name: Copy Net_OpenSSH RPM to download directory
-      shell: "cp '{{ item.path }}' '{{ download_dir }}/{{ net_openssh_rpm }}'"
+      shell: "cp '{{ item.path }}' '{{ download_dir }}/{{ NET_OPENSSH_RPM }}'"
       with_items: "{{ net_openssh_find.files }}"
       when: net_openssh_find.matched > 0
 
@@ -126,9 +126,9 @@
         path: "{{ download_dir }}/{{ item }}"
       register: rpm_stat
       with_items:
-        - "{{ pg_rex_operation_tools_script_rpm }}"
-        - "{{ net_openssh_rpm }}"
-        - "{{ perl_io_tty_rpm_url.split('/')[-1] }}"
+        - "{{ PG_REX_OPERATION_TOOLS_SCRIPT_RPM }}"
+        - "{{ NET_OPENSSH_RPM }}"
+        - "{{ PERL_IO_TTY_RPM_URL.split('/')[-1] }}"
         
     # Display a summary of which RPM packages were successfully downloaded
     - name: Show download results

@@ -40,6 +40,10 @@ ansible-resource-settings/venv-resource-settings/
 # Personal memo
 memo.md
 
+# Claude Code
+CLAUDE.md
+.claude/
+
 # VirtualBMC Vagrant environment
 ansible-virtualbmc/virtualbmc-vbox/
 

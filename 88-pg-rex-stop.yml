@@ -1,5 +1,5 @@
 # PG-REX Complete Shutdown
-- name: PG-REX Complete Shutdown (Standby first, then Primary, VMs, and VirtualBMC)
+- name: PG-REX Complete Shutdown (Standby first, then Primary)
   hosts: hacluster
   become: yes
   gather_facts: no

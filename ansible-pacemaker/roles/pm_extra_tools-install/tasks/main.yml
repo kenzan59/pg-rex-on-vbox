@@ -1,7 +1,7 @@
 # Copy pm_extra_tools to nodes
 - name: Copy pm_extra_tools to nodes
   copy:
-    src: "{{ pm_extra_tools_url.split('/')[-1] }}"
+    src: "{{ PM_EXTRA_TOOLS_URL.split('/')[-1] }}"
     dest: /var/tmp/
   register: rc_copy
 

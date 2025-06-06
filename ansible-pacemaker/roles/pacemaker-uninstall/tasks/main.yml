@@ -96,7 +96,7 @@
   set_fact:
     NO_PROXY_LIST: >-
       {%- for node in groups['hacluster']|sort -%}
-        {{ node }},{{ hostvars[node]['m_lan_addr']}},
+        {{ node }},{{ hostvars[node]['M_LAN_ADDR']}},
       {%- endfor -%}
 - name: remove no_proxy for pcs communication
   lineinfile:

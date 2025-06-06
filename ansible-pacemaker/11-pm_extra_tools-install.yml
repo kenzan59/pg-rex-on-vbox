@@ -4,7 +4,7 @@
   tasks:
     - name: Download pm_extra_tools
       get_url:
-        url="{{ pm_extra_tools_url }}"
+        url="{{ PM_EXTRA_TOOLS_URL }}"
         dest=./roles/pm_extra_tools-install/files/
         timeout=60
       tags: download

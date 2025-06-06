@@ -1,14 +1,14 @@
 all:
   vars:
     ### ansible-os-common-settings
-    s_lan_interface: eth1
-    d_lan_interface: eth2
-    ic_lan_interfaces:
+    S_LAN_INTERFACE: eth1
+    D_LAN_INTERFACE: eth2
+    IC_LAN_INTERFACES:
       - eth3
       - eth4
-    m_lan_interface: eth5
-    system_locale: ja_JP.UTF-8
-    system_timezone: Asia/Tokyo
+    M_LAN_INTERFACE: eth5
+    SYSTEM_LOCALE: ja_JP.UTF-8
+    SYSTEM_TIMEZONE: Asia/Tokyo
 
     ### ansible-virtualbmc
     VBMC_HYPERVISOR: vbox
@@ -22,18 +22,18 @@ all:
     HACLUSTER_PASSWORD: pacemaker
     CLUSTER_NAME: pgrex_cluster
     FENCE_AGENTS: [fence_ipmilan]
-    pm_extra_tools_url: "https://github.com/linux-ha-japan/pm_extra_tools/releases/download/pm_extra_tools-1.6/pm_extra_tools-1.6-1.el9.noarch.rpm"
+    PM_EXTRA_TOOLS_URL: "https://github.com/linux-ha-japan/pm_extra_tools/releases/download/pm_extra_tools-1.6/pm_extra_tools-1.6-1.el9.noarch.rpm"
 
     ### ansible-postgresql
-    pg_rev: '17.4-1PGDG'
+    PG_REV: '17.4-1PGDG'
 
     ### ansible-pg-rex-operation-tools
     ### for perl-IO-Tty-1.16-4.el9.x86_64.rpm
-    perl_io_tty_rpm_url: "https://dl.rockylinux.org/pub/rocky/9/devel/x86_64/os/Packages/p/perl-IO-Tty-1.16-4.el9.x86_64.rpm"
+    PERL_IO_TTY_RPM_URL: "https://dl.rockylinux.org/pub/rocky/9/devel/x86_64/os/Packages/p/perl-IO-Tty-1.16-4.el9.x86_64.rpm"
     ### for Net_OpenSSH-0.62-1.el9.x86_64.rpm and pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm
-    pg_rex_tools_url: "https://github.com/ossc-db/PG-REX-tools/releases/download/PG-REX_17_1/pg-rex17-1.0-1.tar.gz"
-    net_openssh_rpm: Net_OpenSSH-0.62-1.el9.x86_64.rpm
-    pg_rex_operation_tools_script_rpm: pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm
+    PG_REX_TOOLS_URL: "https://github.com/ossc-db/PG-REX-tools/releases/download/PG-REX_17_1/pg-rex17-1.0-1.tar.gz"
+    NET_OPENSSH_RPM: Net_OpenSSH-0.62-1.el9.x86_64.rpm
+    PG_REX_OPERATION_TOOLS_SCRIPT_RPM: pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm
     ### Replication listener virtual IP address
     PG_REPLICATION_ADDRESS: 192.168.77.201
     PG_REPLICATION_USER: repuser
@@ -61,20 +61,20 @@ all:
 
   hosts:
     pgrex01:
-      s_lan_addr: 192.168.76.101
-      d_lan_addr: 192.168.77.101
-      ic_lan1_addr: 192.168.78.101
-      ic_lan2_addr: 192.168.79.101
-      m_lan_addr: 192.168.80.101
+      S_LAN_ADDR: 192.168.76.101
+      D_LAN_ADDR: 192.168.77.101
+      IC_LAN1_ADDR: 192.168.78.101
+      IC_LAN2_ADDR: 192.168.79.101
+      M_LAN_ADDR: 192.168.80.101
       ansible_host: 192.168.80.101
       ansible_user: vagrant
       ansible_ssh_private_key_file: ./vagrant/.vagrant/machines/pgrex01/virtualbox/private_key
     pgrex02:
-      s_lan_addr: 192.168.76.102
-      d_lan_addr: 192.168.77.102
-      ic_lan1_addr: 192.168.78.102
-      ic_lan2_addr: 192.168.79.102
-      m_lan_addr: 192.168.80.102
+      S_LAN_ADDR: 192.168.76.102
+      D_LAN_ADDR: 192.168.77.102
+      IC_LAN1_ADDR: 192.168.78.102
+      IC_LAN2_ADDR: 192.168.79.102
+      M_LAN_ADDR: 192.168.80.102
       ansible_host: 192.168.80.102
       ansible_user: vagrant
       ansible_ssh_private_key_file: ./vagrant/.vagrant/machines/pgrex02/virtualbox/private_key

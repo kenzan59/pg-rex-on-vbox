@@ -18,8 +18,8 @@
 # Installs glibc-langpack-<lang> if not already present (e.g., glibc-langpack-ja)
 - name: Install required locale package
   yum:
-    name: "glibc-langpack-{{ system_locale.split('_')[0] }}"
-  when: system_locale not in _localectl_list_locales.stdout_lines
+    name: "glibc-langpack-{{ SYSTEM_LOCALE.split('_')[0] }}"
+  when: SYSTEM_LOCALE not in _localectl_list_locales.stdout_lines
 
 # Reads current locale settings for comparison
 - name: Get current locale configuration
@@ -29,8 +29,8 @@
 
 # Sets system locale only if it differs from the desired value
 - name: Set system locale if not already set
-  command: "localectl set-locale LANG={{ system_locale }}"
-  when: "'System Locale: LANG=' + system_locale not in _localectl.stdout"
+  command: "localectl set-locale LANG={{ SYSTEM_LOCALE }}"
+  when: "'System Locale: LANG=' + SYSTEM_LOCALE not in _localectl.stdout"
 
 # Reads current timezone settings for comparison
 - name: Get current timezone configuration
@@ -40,14 +40,14 @@
 
 # Sets timezone only if it differs from the desired setting
 - name: Set system timezone if not already set
-  command: "timedatectl set-timezone {{ system_timezone }}"
-  when: "'Time zone: ' + system_timezone not in _timedatectl.stdout"
+  command: "timedatectl set-timezone {{ SYSTEM_TIMEZONE }}"
+  when: "'Time zone: ' + SYSTEM_TIMEZONE not in _timedatectl.stdout"
 
-# Writes all inventory hosts' IPs and names into /etc/hosts using m_lan_addr from inventory
+# Writes all inventory hosts' IPs and names into /etc/hosts using M_LAN_ADDR from inventory
 - name: Add host entries to /etc/hosts
   blockinfile:
     path: /etc/hosts
     block: |
       {% for item in groups.all %}
-      {{ hostvars[item].m_lan_addr }} {{ item }} {{ item }}
+      {{ hostvars[item].M_LAN_ADDR }} {{ item }} {{ item }}
       {% endfor %}
