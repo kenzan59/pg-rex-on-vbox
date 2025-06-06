@@ -40,13 +40,6 @@ ansible-resource-settings/venv-resource-settings/
 # Personal memo
 memo.md
 
-# Inventory files (local-only)
-inventory/osc2022fall.yml
-inventory/all.yml
-
-# Sample or deprecated task files
-ansible-postgresql/roles/postgresql-config/tasks/main-old.yml
-
 # VirtualBMC Vagrant environment
 ansible-virtualbmc/virtualbmc-vbox/
 
