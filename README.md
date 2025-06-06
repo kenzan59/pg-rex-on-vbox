@@ -16,7 +16,7 @@ WSL2 上の Ubuntu で ansible-playbook を実行し、VirtualBox 上の仮想�
 
 ## システム構成図
 
-// ここに図をのせる
+（図をのせる）
 
 ## システム構成
 
