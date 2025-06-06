@@ -5,7 +5,7 @@
   gather_facts: no
 
   vars:
-    download_dir: "./roles/pg-rex-operation-tools-install/files"
+    download_dir: "{{ playbook_dir }}/roles/pg-rex-operation-tools-install/files"
     temp_dir: "/tmp/pg-rex-tools"
     
   tasks:
@@ -140,36 +140,24 @@
 
     # Copy the found pg-rex operation tools script RPM to download directory
     - name: Copy pg-rex_operation_tools_script RPM to download directory (exact match)
-      copy:
-        src: "{{ item.path }}"
-        dest: "{{ download_dir }}/pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm"
-        remote_src: yes
+      shell: "cp '{{ item.path }}' '{{ download_dir }}/pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm'"
       with_items: "{{ pg_rex_script_find.files }}"
       when: pg_rex_script_find.matched > 0
         
     # Copy the found Net_OpenSSH RPM to download directory
     - name: Copy Net_OpenSSH RPM to download directory (exact match)
-      copy:
-        src: "{{ item.path }}"
-        dest: "{{ download_dir }}/Net_OpenSSH-0.62-1.el9.x86_64.rpm"
-        remote_src: yes
+      shell: "cp '{{ item.path }}' '{{ download_dir }}/Net_OpenSSH-0.62-1.el9.x86_64.rpm'"
       with_items: "{{ net_openssh_find.files }}"
       when: net_openssh_find.matched > 0
 
     # Copy the found pg-rex operation tools script RPM to download directory if found with flexible pattern
     - name: Copy pg-rex_operation_tools_script RPM to download directory (flexible match)
-      copy:
-        src: "{{ pg_rex_script_any.stdout_lines[0] }}"
-        dest: "{{ download_dir }}/pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm"
-        remote_src: yes
+      shell: "cp '{{ pg_rex_script_any.stdout_lines[0] }}' '{{ download_dir }}/pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm'"
       when: pg_rex_script_find.matched == 0 and pg_rex_script_any is defined and pg_rex_script_any.stdout_lines | length > 0
 
     # Copy the found Net_OpenSSH RPM to download directory if found with flexible pattern
     - name: Copy Net_OpenSSH RPM to download directory (flexible match)
-      copy:
-        src: "{{ net_openssh_any.stdout_lines[0] }}"
-        dest: "{{ download_dir }}/Net_OpenSSH-0.62-1.el9.x86_64.rpm"
-        remote_src: yes
+      shell: "cp '{{ net_openssh_any.stdout_lines[0] }}' '{{ download_dir }}/Net_OpenSSH-0.62-1.el9.x86_64.rpm'"
       when: net_openssh_find.matched == 0 and net_openssh_any is defined and net_openssh_any.stdout_lines | length > 0
 
     # Clean up temporary directory
