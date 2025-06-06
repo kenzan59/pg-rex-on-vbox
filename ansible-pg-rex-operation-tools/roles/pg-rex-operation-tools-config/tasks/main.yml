@@ -1,21 +1,21 @@
 ### 3.5.2. Edit pg-rex_tools.conf for PG-REX operation tools
 
-# Extract the major version number from pg_rev (e.g., "17" from "17.4-1PGDG")
+# Extract the major version number from PG_REV (e.g., "17" from "17.4-1PGDG")
 - name: Extract major version number of PostgreSQL
   set_fact:
-    pg_major: "{{ pg_rev | regex_replace('^(\\d+)\\..*', '\\1') }}"
+    pg_major: "{{ PG_REV | regex_replace('^(\\d+)\\..*', '\\1') }}"
 
 # Generate comma-separated list of D-LAN IP addresses
 - name: Set D_LAN_IPAddress
   set_fact:
-    pg_d_lan_ips: "{{ hostvars['pgrex01'].d_lan_addr }}, {{ hostvars['pgrex02'].d_lan_addr }}"
+    pg_d_lan_ips: "{{ hostvars['pgrex01'].D_LAN_ADDR }}, {{ hostvars['pgrex02'].D_LAN_ADDR }}"
 
 # Generate IC_LAN_IPAddress string in (ip1, ip2), (ip3, ip4) format
 - name: Set IC_LAN_IPAddress
   set_fact:
     pg_ic_lan_ips: >-
-      ({{ hostvars['pgrex01'].ic_lan1_addr }}, {{ hostvars['pgrex02'].ic_lan1_addr }}),
-      ({{ hostvars['pgrex01'].ic_lan2_addr }}, {{ hostvars['pgrex02'].ic_lan2_addr }})
+      ({{ hostvars['pgrex01'].IC_LAN1_ADDR }}, {{ hostvars['pgrex02'].IC_LAN1_ADDR }}),
+      ({{ hostvars['pgrex01'].IC_LAN2_ADDR }}, {{ hostvars['pgrex02'].IC_LAN2_ADDR }})
 
 # Write key-value entries to /etc/pg-rex_tools.conf
 - name: Update pg-rex_tools.conf file
@@ -71,17 +71,17 @@
 # Define D-LAN addresses of peer nodes
 - name: Extract peer D-LAN IP addresses
   set_fact:
-    peer_d_lan_addrs: "{{ peer_nodes | map('extract', hostvars, 'd_lan_addr') | list }}"
+    peer_d_lan_addrs: "{{ peer_nodes | map('extract', hostvars, 'D_LAN_ADDR') | list }}"
 
 # ssh-keyscan peers from each host and capture results
 - name: Scan and collect peer SSH host keys from each host
   vars:
-    peer_ip: "{{ hostvars[item].d_lan_addr }}"
+    peer_ip: "{{ hostvars[item].D_LAN_ADDR }}"
   command: ssh-keyscan -H {{ peer_ip }}
   register: ssh_keyscan_output
   changed_when: false
   loop: "{{ peer_nodes }}"
-  when: hostvars[item].d_lan_addr is defined
+  when: hostvars[item].D_LAN_ADDR is defined
 
 # Append peer's host key to this host's known_hosts
 - name: Register scanned SSH host keys to known_hosts

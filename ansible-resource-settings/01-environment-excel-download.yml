@@ -6,7 +6,7 @@
   vars:
     download_dir: "{{ playbook_dir }}/roles/edit-environment-excel/files"
     temp_dir: "/tmp/environment-excel"
-    tarball_gz: "{{ temp_dir }}/{{ pg_rex_tools_url.split('/')[-1] }}"
+    tarball_gz: "{{ temp_dir }}/{{ PG_REX_TOOLS_URL.split('/')[-1] }}"
     tarball_gz_extract_dir: "{{ temp_dir }}/untarred"
     extracted_inner: "{{ tarball_gz_extract_dir }}"
 
@@ -25,7 +25,7 @@
     # Download the PG-REX tools tarball archive from the specified URL
     - name: Download PG-REX tools tarball
       get_url:
-        url: "{{ pg_rex_tools_url }}"
+        url: "{{ PG_REX_TOOLS_URL }}"
         dest: "{{ tarball_gz }}"
         timeout: 120
         force: yes

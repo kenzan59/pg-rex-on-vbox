@@ -50,7 +50,7 @@
   set_fact:
     NO_PROXY_LIST: >-
       {%- for node in groups['hacluster']|sort -%}
-        {{ node }},{{ hostvars[node]['m_lan_addr']}},
+        {{ node }},{{ hostvars[node]['M_LAN_ADDR']}},
       {%- endfor -%}
 - name: add no_proxy for pcs communication
   lineinfile:
@@ -84,7 +84,7 @@
   command: >
     pcs host auth
     {% for node in groups['hacluster']|sort %}
-      {{ node }} addr={{ hostvars[node]['m_lan_addr'] }}
+      {{ node }} addr={{ hostvars[node]['M_LAN_ADDR'] }}
     {% endfor %}
     -u hacluster -p {{ HACLUSTER_PASSWORD }}
   when: inventory_hostname == ansible_play_hosts[0]
@@ -103,7 +103,7 @@
 #  command: >
 #    pcs cluster setup {{ CLUSTER_NAME }}
 #    {% for node in groups['hacluster']|sort %}
-#      {{ node }} addr={{ hostvars[node]['ic_lan1_addr'] }} addr={{ hostvars[node]['ic_lan2_addr'] }}
+#      {{ node }} addr={{ hostvars[node]['IC_LAN1_ADDR'] }} addr={{ hostvars[node]['IC_LAN2_ADDR'] }}
 #    {% endfor %}
 #    --force
 #  when: inventory_hostname == ansible_play_hosts[0]

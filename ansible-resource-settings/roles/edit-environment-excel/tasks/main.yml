@@ -44,13 +44,13 @@
   set_fact:
     environment_csv_cell_values: >-
       --set F77={{ PG_PRIMARY_VIRTUAL_IP_ADDRESS }}
-      --set F78={{ s_lan_interface }}
+      --set F78={{ S_LAN_INTERFACE }}
       --set F79={{ S_LAN_NETMASK }}
       --set F93={{ PG_REPLICATION_ADDRESS }}
-      --set F94={{ d_lan_interface }}
+      --set F94={{ D_LAN_INTERFACE }}
       --set F95={{ D_LAN_NETMASK }}
       --set F110={{ PG_STANDBY_VIRTUAL_IP_ADDRESS }}
-      --set F111={{ s_lan_interface }}
+      --set F111={{ S_LAN_INTERFACE }}
       --set F112={{ S_LAN_NETMASK }}
       --set F135={{ PG_REPLICATION_ADDRESS }}
       --set F137={{ PG_REPLICATION_USER }}

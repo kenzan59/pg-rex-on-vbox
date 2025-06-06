@@ -14,11 +14,11 @@
 
 - name: make sure the minor revision of PostgreSQL
   set_fact:
-    pg_rev: '13.7-1PGDG'
-  when: pg_rev is not defined
+    PG_REV: '13.7-1PGDG'
+  when: PG_REV is not defined
 - name: extract major version number of PostgreSQL
   set_fact:
-    pg_major: "{{ pg_rev | regex_replace('^(\\d*)\\..*', '\\1') }}"
+    pg_major: "{{ PG_REV | regex_replace('^(\\d*)\\..*', '\\1') }}"
 
 - name: copy PostgreSQL packages to the node
   copy:
@@ -26,11 +26,11 @@
     dest="/var/tmp/"
   with_items:
       # the order is significant - as each rpms will be installed in this order
-      - postgresql{{ pg_major }}-libs-{{ pg_rev }}.rhel9.x86_64.rpm
-      - postgresql{{ pg_major }}-{{ pg_rev }}.rhel9.x86_64.rpm
-      - postgresql{{ pg_major }}-server-{{ pg_rev }}.rhel9.x86_64.rpm
-      - postgresql{{ pg_major }}-contrib-{{ pg_rev }}.rhel9.x86_64.rpm
-      - postgresql{{ pg_major }}-docs-{{ pg_rev }}.rhel9.x86_64.rpm
+      - postgresql{{ pg_major }}-libs-{{ PG_REV }}.rhel9.x86_64.rpm
+      - postgresql{{ pg_major }}-{{ PG_REV }}.rhel9.x86_64.rpm
+      - postgresql{{ pg_major }}-server-{{ PG_REV }}.rhel9.x86_64.rpm
+      - postgresql{{ pg_major }}-contrib-{{ PG_REV }}.rhel9.x86_64.rpm
+      - postgresql{{ pg_major }}-docs-{{ PG_REV }}.rhel9.x86_64.rpm
   register: rc_copy
 
 - name: install PostgreSQL packages
