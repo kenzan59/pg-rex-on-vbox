@@ -22,6 +22,7 @@ all:
     HACLUSTER_PASSWORD: pacemaker
     CLUSTER_NAME: pgrex_cluster
     FENCE_AGENTS: [fence_ipmilan]
+    pm_extra_tools_url: "https://github.com/linux-ha-japan/pm_extra_tools/releases/download/pm_extra_tools-1.6/pm_extra_tools-1.6-1.el9.noarch.rpm"
 
     ### ansible-postgresql
     pg_rev: '17.4-1PGDG'

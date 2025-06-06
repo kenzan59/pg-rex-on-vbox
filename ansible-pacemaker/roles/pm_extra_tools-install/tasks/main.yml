@@ -1,12 +1,12 @@
-- name: copy pm_extra_tools to nodes
+# Copy pm_extra_tools to nodes
+- name: Copy pm_extra_tools to nodes
   copy:
-    src: pm_extra_tools-1.6-1.el9.noarch.rpm
+    src: "{{ pm_extra_tools_url }}"
     dest: /var/tmp/
   register: rc_copy
 
-## # yum install pm_extra_tools
-#
-- name: install pm_extra_tools
+# Install pm_extra_tools
+- name: Install pm_extra_tools
   yum:
     name: "{{ rc_copy.dest }}"
     disable_gpg_check: True

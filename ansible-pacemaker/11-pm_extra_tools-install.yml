@@ -4,11 +4,9 @@
   tasks:
     - name: Download pm_extra_tools
       get_url:
-        url="https://github.com/linux-ha-japan/pm_extra_tools/releases/download/pm_extra_tools-{{item.rev}}/{{item.package}}"
+        url="{{ pm_extra_tools_url }}"
         dest=./roles/pm_extra_tools-install/files/
         timeout=60
-      with_items:
-        - {rev: 1.6, package: pm_extra_tools-1.6-1.el9.noarch.rpm }
       tags: download
 
 - hosts: hacluster
