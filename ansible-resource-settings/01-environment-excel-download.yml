@@ -6,7 +6,7 @@
   vars:
     download_dir: "{{ playbook_dir }}/roles/edit-environment-excel/files"
     temp_dir: "/tmp/environment-excel"
-    tarball_gz: "{{ temp_dir }}/pg-rex17-1.0-1.tar.gz"
+    tarball_gz: "{{ temp_dir }}/{{ pg_rex_tools_url.split('/')[-1] }}"
     tarball_gz_extract_dir: "{{ temp_dir }}/untarred"
     extracted_inner: "{{ tarball_gz_extract_dir }}"
 
@@ -84,7 +84,7 @@
 
     # Copy the found Excel file to a simplified file name in the same directory
     - name: Copy Excel file to simplified name
-      command: >
+      shell: >
         cp "{{ excel_files.stdout_lines[0] }}" "{{ excel_files.stdout_lines[0] | dirname }}/{{ ENVIRONMENT_EXCEL }}"
       register: copy_excel_result
       when: excel_files.stdout_lines | length > 0
@@ -97,10 +97,7 @@
 
     # Copy the renamed Excel file from the temporary location to the roles directory
     - name: Copy renamed Excel file to roles directory
-      copy:
-        src: "{{ temp_excel_path }}"
-        dest: "{{ download_dir }}/{{ ENVIRONMENT_EXCEL }}"
-        remote_src: no
+      shell: "cp '{{ temp_excel_path }}' '{{ download_dir }}/{{ ENVIRONMENT_EXCEL }}'"
       when: excel_files.stdout_lines | length > 0 and temp_excel_path != ""
 
     # Clean up temporary downloaded and extracted files/directories to free up space

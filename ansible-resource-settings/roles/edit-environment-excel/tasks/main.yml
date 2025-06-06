@@ -21,6 +21,13 @@
 - name: Install pandas and openpyxl in venv-resource-settings
   command: "{{ venv_path }}/bin/pip install pandas openpyxl"
 
+# Ensure CSV output directory exists
+- name: Ensure CSV output directory exists
+  file:
+    path: "{{ playbook_dir }}/roles/transfer-environment-csv/files"
+    state: directory
+    mode: '0755'
+
 # Run the Excel to CSV conversion script using the virtual environment
 - name: Run xlsx-to-csv converter
   command: >
