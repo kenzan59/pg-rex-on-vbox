@@ -52,6 +52,7 @@
       --set F110={{ PG_STANDBY_VIRTUAL_IP_ADDRESS }}
       --set F111={{ S_LAN_INTERFACE }}
       --set F112={{ S_LAN_NETMASK }}
+      --set F134="{{ groups['hacluster_vbmc'] | join(' ') }}"
       --set F135={{ PG_REPLICATION_ADDRESS }}
       --set F137={{ PG_REPLICATION_USER }}
       --set F159={{ S_LAN_DEFAULT_GATEWAY_IP_ADDRESS }}
