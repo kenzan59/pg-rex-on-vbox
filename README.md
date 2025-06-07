@@ -91,7 +91,7 @@ ansible-playbook 89-demo-stop.yml -K
 
 ### デモ環境の再起動
 ```bash
-ansible-playbook 80-demo-restart.yml
+ansible-playbook 80-demo-restart.yml -K
 ```
 仮想マシンと VirtualBMC サービスを再起動します。PG-REX は手動で起動してください。
 
