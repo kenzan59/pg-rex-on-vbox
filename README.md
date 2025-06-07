@@ -35,15 +35,19 @@ WSL2 上の Ubuntu で ansible-playbook を実行し、VirtualBox 上の仮想�
 
 ## 事前準備
 
+### VirtualBox、Vagrant、WSL2 のインストール
+
+インターネットの記事を参考に、VirtualBox、Vagrant、WSL2 をインストールしてください。
+
 ### Ubuntu 24.04 のインストール
 
-作業ディレクトリを作成し、WSL2 で Ubuntu 24.04（以下、Ubuntu）をインストールします。
+WSL2 で Ubuntu 24.04（以下、Ubuntu）をインストールします。
 
 ```powershell
 > wsl --install Ubuntu-24.04
 ```
 
-Ubuntu のインストール後、ユーザー名とパスワードを設定します。ここでは、ユーザ名を `testuser` とします。
+Ubuntu のインストール後、ユーザー名とパスワードを設定します。
 
 ### Ubuntu のソフトウェアの更新
 
@@ -166,25 +170,33 @@ $ ansible-playbook 70-resource-settings.yml -K
 
 ### pgrex01 および pgrex02 への SSH ログイン
 
+### PG-REX の起動
 
+### （任意）PG-REX の停止
 
-### （任意）PG-REX 環境の停止
+PG-REX を停止します。PG-REX を手動で停止する場合、この手順は必要ありません。
+
 ```bash
 $ ansible-playbook 88-pg-rex-stop.yml
 ```
-PG-REX クラスタを安全に停止します。PG-REX を手動で停止する場合、この手順は必要ありません。
 
-### デモ環境の停止
+### 環境の停止
+
+仮想マシンと VirtualBMC サービスを完全に停止します。
+
 ```bash
 $ ansible-playbook 89-demo-stop.yml -K
 ```
-仮想マシンと VirtualBMC サービスを完全に停止します。
 
-### デモ環境の再起動
+### 環境の再起動
+
+仮想マシンと VirtualBMC サービスを再起動します。
+
 ```bash
 $ ansible-playbook 80-demo-restart.yml -K
 ```
-仮想マシンと VirtualBMC サービスを再起動します。再起動後、PG-REX を手動で起動してください。
+
+再起動後、PG-REX を手動で起動してください。
 
 ## ディレクトリ構成
 
