@@ -104,77 +104,85 @@ $ sudo apt install -y python3 python3-netaddr python3-passlib python3-venv unzip
 $ git clone --recursive https://github.com/kenzan59/pg-rex-on-vbox.git
 ```
 
-### （必要に応じて）権限設定
-
-すべてのディレクトリの権限を 755（rwxr-xr-x）、すべてのファイルの権限を 644（rw-r--r--）に変更します。
-
-```bash
-$ cd pg-rex-on-vbox
-$ find . -type d -exec chmod 755 {} \;
-$ find . -type f -exec chmod 644 {} \;
-```
-
 ## 構築手順
 
 ### 1. 仮想マシンの作成
-```bash
-ansible-playbook 10-vagrant.yml
-```
+
 RockyLinux 9.5 ベースの 2 台の仮想マシン（pgrex01, pgrex02）を作成します。
 
-### 2. OS 共通設定
 ```bash
-ansible-playbook 20-os-common-settings.yml
+$ ansible-playbook 10-vagrant.yml
 ```
+
+### 2. OS 共通設定
+
 ネットワーク設定、ロケール設定（ja_JP.UTF-8）、タイムゾーン設定（Asia/Tokyo）を行います。
 
-### 3. VirtualBMC 設定
 ```bash
-ansible-playbook 30-virtualbmc.yml -K
+$ ansible-playbook 20-os-common-settings.yml
 ```
+
+### 3. VirtualBMC 設定
+
 STONITH（Shoot The Other Node In The Head）用の VirtualBMC を設定します。
 
-### 4. Pacemaker 設定
 ```bash
-ansible-playbook 40-pacemaker.yml
+$ ansible-playbook 30-virtualbmc.yml -K
 ```
+
+### 4. Pacemaker 設定
+
 Pacemaker のインストールと設定を行います。
 
-### 5. PostgreSQL 設定
 ```bash
-ansible-playbook 50-postgresql.yml
+$ ansible-playbook 40-pacemaker.yml
 ```
+
+### 5. PostgreSQL 設定
+
 PostgreSQL 17.4 をインストールし、レプリケーション設定を行います。
 
-### 6. PG-REX 運用補助ツール設定
 ```bash
-ansible-playbook 60-pg-rex-operation-tools.yml
+$ ansible-playbook 50-postgresql.yml
 ```
+
+### 6. PG-REX 運用補助ツール設定
+
 PG-REX 運用補助ツールをインストールし、クラスタ運用に必要なスクリプトを設定します。
 
-### 7. リソース設定
 ```bash
-ansible-playbook 70-resource-settings.yml -K
+$ ansible-playbook 60-pg-rex-operation-tools.yml
 ```
+
+### 7. リソース設定
+
 Pacemakerリソース設定とクラスタ環境の最終設定を行います。
+
+```bash
+$ ansible-playbook 70-resource-settings.yml -K
+```
 
 ## インストール後の運用手順
 
+### pgrex01 および pgrex02 への SSH ログイン
+
+
+
 ### （任意）PG-REX 環境の停止
 ```bash
-ansible-playbook 88-pg-rex-stop.yml
+$ ansible-playbook 88-pg-rex-stop.yml
 ```
 PG-REX クラスタを安全に停止します。PG-REX を手動で停止する場合、この手順は必要ありません。
 
 ### デモ環境の停止
 ```bash
-ansible-playbook 89-demo-stop.yml -K
+$ ansible-playbook 89-demo-stop.yml -K
 ```
 仮想マシンと VirtualBMC サービスを完全に停止します。
 
 ### デモ環境の再起動
 ```bash
-ansible-playbook 80-demo-restart.yml -K
+$ ansible-playbook 80-demo-restart.yml -K
 ```
 仮想マシンと VirtualBMC サービスを再起動します。再起動後、PG-REX を手動で起動してください。
 
