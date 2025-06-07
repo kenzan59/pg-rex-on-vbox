@@ -20,7 +20,7 @@ WSL2 上の Ubuntu で ansible-playbook を実行し、VirtualBox 上の仮想�
 
 ## 前提条件
 
-### ソフトウェア
+### 動作確認時のソフトウェアのバージョン
 - Windows 11 Home 24H2
 - VirtualBox : 7.1.8
 - Vagrant : 2.4.5
