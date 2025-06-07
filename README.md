@@ -20,23 +20,99 @@ WSL2 上の Ubuntu で ansible-playbook を実行し、VirtualBox 上の仮想�
 
 ## 前提条件
 
-### 必要なソフトウェア
-- ホスト OS : Windows 11 Pro 24H2（以下、Windows）
-  - Windows 11 Home でも大丈夫のはずです。
-  - Windows のユーザ名 : kenza
-    - `C:\Users\kenza` がホームディレクトリです。
+### ソフトウェア
+- Windows 11 Home 24H2
 - VirtualBox : 7.1.8
 - Vagrant : 2.4.5
-- WSL2 : 2.4.13.0
-  - Ubuntu : 24.04 LTS（以下、Ubuntu）
-    - Ubuntu のユーザ名 : testuser
-    - Ubuntu のパスワード: testuser
+- WSL2 : 2.5.7.0
+  - Ubuntu : 24.04 LTS
 - Proxy なし
-  - Proxy 環境での構築手順は宿題です。
+  - Proxy 環境下での構築手順は未検証
 
 ### 必要なリソース
 - メモリ: 最小 8 GB（各 VM 4 GB）
 - ディスク容量: 最小 20 GB
+
+## 事前準備
+
+### Ubuntu 24.04 のインストール
+
+作業ディレクトリを作成し、WSL2 で Ubuntu 24.04（以下、Ubuntu）をインストールします。
+
+```powershell
+> wsl --install Ubuntu-24.04
+```
+
+Ubuntu のインストール後、ユーザー名とパスワードを設定します。ここでは、ユーザ名を `testuser` とします。
+
+### Ubuntu のソフトウェアの更新
+
+```bash
+$ sudo apt update
+$ sudo apt upgrade
+```
+
+### WSL2 設定ファイルの編集
+
+Ansible Playbook を利用するため、Ubuntu の `/etc/wsl.conf` に `[automount]` の要素を追加します。
+
+```bash
+$ sudo vi /etc/wsl.conf
+```
+
+`/etc/wsl.conf` の内容：
+```ini
+[boot]
+systemd=true
+
+[user]
+default=testuser
+
+[automount]
+options="metadata"
+```
+
+`[automount]` セクションにより、Windows ファイルシステム（`/mnt/c`）配下でも、playbook や ssh 鍵のパーミッションが正しく設定可能になります。
+
+設定を反映させるため、WSL2 を一度終了・再起動します。
+
+```powershell
+> wsl -t Ubuntu-24.04
+> wsl -d Ubuntu-24.04
+```
+
+以下、Ubuntu の作業ディレクトリで作業します。
+
+### Ansible のインストール
+
+```bash
+$ sudo apt install software-properties-common
+$ sudo add-apt-repository --yes --update ppa:ansible/ansible
+$ sudo apt install ansible
+$ ansible --version
+```
+
+### 追加パッケージのインストール
+
+```bash
+$ sudo apt install -y python3 python3-netaddr python3-passlib python3-venv unzip
+```
+
+### リポジトリの取得
+
+```bash
+$ git clone --recursive https://github.com/kenzan59/pg-rex-on-vbox.git
+```
+
+### （必要に応じて）権限設定
+
+すべてのディレクトリの権限を 755（rwxr-xr-x）、すべてのファイルの権限を 644（rw-r--r--）に変更します。
+
+```bash
+$ cd pg-rex-on-vbox
+$ find . -type d -exec chmod 755 {} \;
+$ find . -type f -exec chmod 644 {} \;
+```
 
 ## 構築手順
 
