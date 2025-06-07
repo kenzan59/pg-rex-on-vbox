@@ -6,6 +6,9 @@
 *.xlsx
 *.csv
 
+# drawio
+*.drawio
+
 # SSH key files - Never commit private keys
 /root/.ssh/id_rsa
 /root/.ssh/id_rsa.pub
