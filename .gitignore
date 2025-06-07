@@ -6,8 +6,9 @@
 *.xlsx
 *.csv
 
-# drawio
+# drawio files
 *.drawio
+*.drawio.bkp
 
 # SSH key files - Never commit private keys
 /root/.ssh/id_rsa
@@ -31,6 +32,12 @@ __pycache__/
 ansible-virtualbmc/venv-vbmc/
 ansible-resource-settings/venv-resource-settings/
 
+# VirtualBMC Vagrant environment
+ansible-virtualbmc/virtualbmc-vbox/
+
+# Temporary SSH scan output (PG-REX operation tools)
+ansible-pg-rex-operation-tools/roles/pg-rex-operation-tools-config/files/
+
 # Ansible Vault password file (if used)
 .vault_pass.txt
 
@@ -46,9 +53,3 @@ memo.md
 # Claude Code
 CLAUDE.md
 .claude/
-
-# VirtualBMC Vagrant environment
-ansible-virtualbmc/virtualbmc-vbox/
-
-# Temporary SSH scan output (PG-REX operation tools)
-ansible-pg-rex-operation-tools/roles/pg-rex-operation-tools-config/files/
