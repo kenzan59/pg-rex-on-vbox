@@ -21,11 +21,18 @@ WSL2 上の Ubuntu で ansible-playbook を実行し、VirtualBox 上の仮想�
 ## 前提条件
 
 ### 必要なソフトウェア
-- WSL2 Ubuntu
-- VirtualBox
-- Vagrant
-- Ansible
-- Python 3
+- ホスト OS : Windows 11 Pro 24H2（以下、Windows）
+  - Windows 11 Home でも大丈夫のはずです。
+  - Windows のユーザ名 : kenza
+    - `C:\Users\kenza` がホームディレクトリです。
+- VirtualBox : 7.1.8
+- Vagrant : 2.4.5
+- WSL2 : 2.4.13.0
+  - Ubuntu : 24.04 LTS（以下、Ubuntu）
+    - Ubuntu のユーザ名 : testuser
+    - Ubuntu のパスワード: testuser
+- Proxy なし
+  - Proxy 環境での構築手順は宿題です。
 
 ### 必要なリソース
 - メモリ: 最小 8 GB（各 VM 4 GB）
