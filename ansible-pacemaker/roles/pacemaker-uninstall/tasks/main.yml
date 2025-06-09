@@ -40,7 +40,7 @@
 
 ### uninstall packages
 #
-## # yum erase pcs pacemaker fence-agents-all
+## # dnf erase pcs pacemaker fence-agents-all
 #
 # autoremove seems enabled by default when running it from the shell
 #
