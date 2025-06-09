@@ -119,7 +119,7 @@ $ git clone --recursive https://github.com/kenzan59/pg-rex-on-vbox.git
 
 ### 1. 仮想マシンの作成
 
-RockyLinux 9.5 ベースの 2 台の仮想マシン（pgrex01, pgrex02）を作成します。
+RockyLinux ベースの 2 台の仮想マシン（pgrex01, pgrex02）を作成します。
 
 ```bash
 $ ansible-playbook 10-vagrant.yml
@@ -151,7 +151,7 @@ $ ansible-playbook 40-pacemaker.yml
 
 ### 5. PostgreSQL 設定
 
-PostgreSQL 17.4 をインストールし、レプリケーション設定を行います。
+PostgreSQL をインストールし、レプリケーション設定を行います。
 
 ```bash
 $ ansible-playbook 50-postgresql.yml
@@ -176,8 +176,6 @@ $ ansible-playbook 70-resource-settings.yml -K
 ## インストール後の運用手順
 
 Windows で Tera Term を起動し、pgrex01 に SSH 接続します。 pgrex01 に SSH 接続する場合は localhost:2231、pgrex02 に SSH 接続する場合は localhost:2232 です。
-
-なお、vagrant ディレクトリに移動し `vagrant.exe ssh pgrex01` を実行する方法でも OK です。
 
 ### PG-REX の起動
 
