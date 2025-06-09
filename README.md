@@ -99,7 +99,6 @@ https_proxy=http://PROXY:8080/
 ```bash
 export http_proxy=http://PROXY:8080/
 export https_proxy=http://PROXY:8080/
-#export VAGRANT_CWD=/mnt/c/Users/<playbook_dir>/vagrant
 export WSLENV=VAGRANT_CWD/p:http_proxy:https_proxy
 ```
 
@@ -110,6 +109,11 @@ Acquire::https::proxy "http://PROXY:8080/";
 Acquire::http::Timeout "300";
 ```
 
+`git`
+```bash
+$ git config --global http.proxy http://PROXY:8080
+$ git config --global https.proxy http://PROXY:8080
+```
 
 ### WSL2 の再起動
 
