@@ -17,7 +17,7 @@
 
 # Installs glibc-langpack-<lang> if not already present (e.g., glibc-langpack-ja)
 - name: Install required locale package
-  yum:
+  dnf:
     name: "glibc-langpack-{{ SYSTEM_LOCALE.split('_')[0] }}"
   when: SYSTEM_LOCALE not in _localectl_list_locales.stdout_lines
 

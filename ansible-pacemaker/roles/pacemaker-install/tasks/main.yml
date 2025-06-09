@@ -1,8 +1,8 @@
 ### 3.3. Pacemaker
 
-### yum install pcs pacemaker fence-agents-all
+### dnf install pcs pacemaker fence-agents-all
 - name: install Pacemaker packages
-  yum:
+  dnf:
     name: ['pcs', 'pacemaker', 'fence-agents-all']
     enablerepo: highavailability
     state: present

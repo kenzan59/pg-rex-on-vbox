@@ -45,18 +45,18 @@
 # autoremove seems enabled by default when running it from the shell
 #
 - name: uninstall pacemaker packages
-  yum:
+  dnf:
     name: ['pcs', 'pacemaker', 'fence-agents-all']
     autoremove: yes
     state: absent
-  tags: yum
+  tags: dnf
 
 # FYI:
 # if autoremove did not work, here is an alternative way
 # yum module does not support a wildcard for the package names so use command:
 #
 - name: uninstall pacemaker packages without autoremove (--tags=uninstall_force)
-  command: env LANG=C yum -y erase pcs pacemaker* corosync* libknet* fence-*
+  command: env LANG=C dnf -y erase pcs pacemaker* corosync* libknet* fence-*
   args:
     warn: false
   register: result

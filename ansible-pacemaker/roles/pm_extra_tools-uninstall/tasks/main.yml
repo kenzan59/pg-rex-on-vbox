@@ -1,5 +1,5 @@
 # Erase pm_extra_tools
 - name: Uninstall pm_extra_tools
-  yum:
+  dnf:
     name: pm_extra_tools
     state: absent

@@ -1,8 +1,8 @@
 ### 3.4.1 Install PostgreSQL packages
 
 # make sure an old version of PostgreSQL is absent
-#   ignore warnings about using yum instead of rpm;
-#   yum can not be used here because it would also erase postgresql11-libs if presented
+#   ignore warnings about using dnf instead of rpm;
+#   dnf can not be used here because it would also erase postgresql11-libs if presented
 #   so it would be always "changed"
 - name: uninstall old version of PostgreSQL
   shell: rpm -e postgresql-libs
@@ -34,7 +34,7 @@
   register: rc_copy
 
 - name: install PostgreSQL packages
-  yum:
+  dnf:
     name: "{{ item.dest | default(item.path) }}"
     update_cache: yes
     disable_gpg_check: True
