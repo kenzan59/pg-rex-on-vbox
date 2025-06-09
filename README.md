@@ -169,7 +169,7 @@ $ ansible-playbook 60-pg-rex-operation-tools.yml
 
 ### 7. リソース設定
 
-Pacemakerリソース設定とクラスタ環境の最終設定を行います。
+Pacemaker リソース設定とクラスタ環境の最終設定を行います。
 
 ```bash
 $ ansible-playbook 70-resource-settings.yml -K
@@ -177,9 +177,174 @@ $ ansible-playbook 70-resource-settings.yml -K
 
 ## インストール後の運用手順
 
-### pgrex01 および pgrex02 への SSH ログイン
+Windows で Tera Term を起動し、pgrex01 に SSH 接続します。 pgrex01 に SSH 接続する場合は localhost:2231、pgrex02 に SSH 接続する場合は localhost:2232 です。
+
+なお、vagrant ディレクトリに移動し `vagrant.exe ssh pgrex01` を実行する方法でも OK です。
 
 ### PG-REX の起動
+
+pgrex01 を Primary ノードとして起動します。
+
+```bash
+[vagrant@pgrex01 ~]$ su -
+パスワード:
+[root@pgrex01 ~]# ls
+pm_pcsgen_env.csv  pm_pcsgen_env.sh  pm_pcsgen_env.xml 
+[root@pgrex01 ~]# pg-rex_primary_start pm_pcsgen_env.xml
+1. Pacemaker および Corosync が停止していることを確認
+...[OK]
+2. 稼働中の Primary が存在していないことを確認
+...[OK]
+3. 起動禁止フラグの存在を確認
+...[OK]
+4. HAクラスタ の作成
+Destroying cluster on hosts: 'pgrex01', 'pgrex02'...
+pgrex02: Successfully destroyed cluster
+pgrex01: Successfully destroyed cluster
+Requesting remove 'pcsd settings' from 'pgrex01', 'pgrex02'
+pgrex01: successful removal of the file 'pcsd settings'
+pgrex02: successful removal of the file 'pcsd settings'
+Sending 'corosync authkey', 'pacemaker authkey' to 'pgrex01', 'pgrex02'
+pgrex01: successful distribution of the file 'corosync authkey'
+pgrex01: successful distribution of the file 'pacemaker authkey'
+pgrex02: successful distribution of the file 'corosync authkey'
+pgrex02: successful distribution of the file 'pacemaker authkey'
+Sending 'corosync.conf' to 'pgrex01', 'pgrex02'
+pgrex01: successful distribution of the file 'corosync.conf'
+pgrex02: successful distribution of the file 'corosync.conf'
+Cluster has been successfully set up.
+...[OK]
+5. Pacemaker 起動
+Starting Cluster...
+Waiting for node(s) to start...
+Started
+...[OK]
+6. リソース定義 xml ファイルの反映
+CIB updated
+...[OK]
+Warning: If node(s) 'pgrex02' are not powered off or they do have access to shared resources, data corruption and/or cluster failure may occur
+Warning: If node 'pgrex02' is not powered off or it does have access to shared resources, data corruption and/or cluster failure may occur
+Quorum unblocked
+Waiting for nodes canceled
+7. Primary の起動確認
+...[OK]
+ノード(pgrex01)が Primary として起動しました
+[root@pgrex01 ~]#
+```
+
+pgrex02 を Standby ノードとして起動します。
+
+```bash
+[vagrant@pgrex02 ~]$ su -
+パスワード:
+[root@pgrex02 ~]# pg-rex_standby_start
+1. Pacemaker および Corosync が停止していることを確認
+...[OK]
+2. 稼働中の Primary が存在していることを確認
+...[OK]
+3. 起動禁止フラグが存在しないことを確認
+...[OK]
+4. DB クラスタの状態を確認
+4.1 現在のDBクラスタのまま起動が可能か確認
+DB クラスタが存在していません
+...[NG]
+4.2 巻き戻しを実行することで起動が可能か確認
+DB クラスタが存在していません
+...[NG]
+4.3 ベースバックアップを取得することが可能か確認
+...[OK]
+
+以下の方法で起動が可能です
+b) ベースバックアップを取得してStandbyを起動
+q) Standbyの起動を中止する
+起動方法を選択してください(b/q) b 
+5. IC-LAN が接続されていることを確認
+...[OK]
+6. Primary からベースバックアップ取得
+NOTICE:  all required WAL segments have been archived
+23120/23120 kB (100%), 1/1 テーブル空間
+...[OK]
+7. Primary のアーカイブディレクトリと同期
+000000010000000000000002.partial
+00000002.history
+000000020000000000000003.00000028.backup
+000000010000000000000001
+000000020000000000000002
+000000020000000000000003
+...[OK]
+8. Standby の起動 (アーカイブリカバリ対象 WAL セグメント数: 1)
+Starting Cluster...
+...[OK]
+9. Standby の起動確認
+...[OK]
+ノード(pgrex02)が Standby として起動しました
+[root@pgrex02 ~]#
+```
+
+さいごに、pgrex01（または pgrex02）で、pcs status --full コマンドを実行します。
+
+```bash
+[root@pgrex01 ~]# pcs status --full
+Cluster name: pgrex_cluster
+Cluster Summary:
+  * Stack: corosync (Pacemaker is running)
+  * Current DC: pgrex01 (1) (version 2.1.9-1.el9-49aab9983) - partition with quorum
+  * Last updated: Fri Jun  6 23:22:21 2025 on pgrex01
+  * Last change:  Fri Jun  6 23:09:18 2025 by root via root on pgrex01
+  * 2 nodes configured
+  * 11 resource instances configured
+
+Node List:
+  * Node pgrex01 (1): online, feature set 3.19.6
+  * Node pgrex02 (2): online, feature set 3.19.6
+
+Full List of Resources:
+  * Clone Set: pgsql-clone [pgsql] (promotable):
+    * pgsql     (ocf:linuxhajp:pgsql):   Promoted pgrex01
+    * pgsql     (ocf:linuxhajp:pgsql):   Unpromoted pgrex02
+  * Resource Group: primary-group:
+    * ipaddr-primary    (ocf:heartbeat:IPaddr2):         Started pgrex01
+    * ipaddr-replication        (ocf:heartbeat:IPaddr2):         Started pgrex01
+  * ipaddr-standby      (ocf:heartbeat:IPaddr2):         Started pgrex02
+  * Clone Set: ping-clone [ping]:
+    * ping      (ocf:pacemaker:ping):    Started pgrex01
+    * ping      (ocf:pacemaker:ping):    Started pgrex02
+  * Clone Set: storage-mon-clone [storage-mon]:
+    * storage-mon       (ocf:heartbeat:storage-mon):     Started pgrex01
+    * storage-mon       (ocf:heartbeat:storage-mon):     Started pgrex02
+  * fence1-ipmilan      (stonith:fence_ipmilan):         Started pgrex02
+  * fence2-ipmilan      (stonith:fence_ipmilan):         Started pgrex01
+
+Node Attributes:
+  * Node: pgrex01 (1):
+    * master-pgsql                      : 1000
+    * pgsql-data-status                 : LATEST
+    * pgsql-master-baseline             : 00000000020000A0
+    * pgsql-status                      : PRI
+    * ping-status                       : 1
+  * Node: pgrex02 (2):
+    * master-pgsql                      : 100
+    * pgsql-data-status                 : STREAMING|SYNC
+    * pgsql-status                      : HS:sync
+    * ping-status                       : 1
+
+Migration Summary:
+
+Fencing History:
+  * turning off of pgrex02 successful: delegate=a human, client=stonith_admin.58679, origin=pgrex01, completed='2025-06-06 23:07:14.357124 +09:00'
+
+Tickets:
+
+PCSD Status:
+  pgrex01: Online
+  pgrex02: Online
+
+Daemon Status:
+  corosync: active/disabled
+  pacemaker: active/disabled
+  pcsd: active/enabled
+[root@pgrex01 ~]#
+```
 
 ### （任意）PG-REX の停止
 
@@ -206,6 +371,21 @@ $ ansible-playbook 80-demo-restart.yml -K
 ```
 
 再起動後、PG-REX を手動で起動してください。
+
+### 環境の完全削除
+
+環境の停止後、環境を完全に削除したい場合は、`vagrant.exe destroy` コマンドで仮想マシンを削除します。
+
+```bash
+$ cd vagrant
+$ vagrant.exe destroy
+    pgrex02: Are you sure you want to destroy the 'pgrex02' VM? [y/N] y
+==> pgrex02: Destroying VM and associated drives...
+    pgrex01: Are you sure you want to destroy the 'pgrex01' VM? [y/N] y
+==> pgrex01: Destroying VM and associated drives...
+```
+
+Vagrant によって作成したネットワークについては、VirtualBox GUI 画面 → ツール → ネットワーク で確認し、不要な項目があれば削除してください。
 
 ## ディレクトリ構成
 
