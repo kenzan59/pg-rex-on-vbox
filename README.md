@@ -85,6 +85,34 @@ options="metadata"
 
 `[automount]` セクションにより、Windows ファイルシステム（`/mnt/c`）配下でも、playbook や ssh 鍵のパーミッションが正しく設定可能になります。
 
+### （未検証）Proxy 設定
+
+Proxy 環境下で使用する場合は、以下の設定が必要です。
+
+`/etc/environment`
+```
+http_proxy=http://PROXY:8080/
+https_proxy=http://PROXY:8080/
+```
+
+`$HOME/.bashrc`
+```bash
+export http_proxy=http://PROXY:8080/
+export https_proxy=http://PROXY:8080/
+#export VAGRANT_CWD=/mnt/c/Users/<playbook_dir>/vagrant
+export WSLENV=VAGRANT_CWD/p:http_proxy:https_proxy
+```
+
+`/etc/apt/apt.conf.d/99proxy`
+```
+Acquire::http::proxy "http://PROXY:8080/";
+Acquire::https::proxy "http://PROXY:8080/";
+Acquire::http::Timeout "300";
+```
+
+
+### WSL2 の再起動
+
 設定を反映させるため、WSL2 を一度終了・再起動します。
 
 ```powershell
