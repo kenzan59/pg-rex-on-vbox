@@ -41,8 +41,6 @@ WSL2 上の Ubuntu で ansible-playbook を実行し、VirtualBox 上の仮想�
 
 - VirtualBox
   - https://www.virtualbox.org/wiki/Downloads
-    - インストーラ実行中、Missing Dependencies Python Core / win32api が表示された場合は、インストールを中断し、Python と pywin32 をインストールしましょう。
-      - https://infra-exp.com/virtualbox_install_warning/
 - Vagrant
   - https://www.vagrantup.com/downloads
 - WSL2
