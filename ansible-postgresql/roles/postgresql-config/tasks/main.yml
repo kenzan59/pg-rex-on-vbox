@@ -145,6 +145,7 @@
         path: "{{ PG_DATA }}/pg_hba.conf"
         block: |
           host all all {{ M_LAN_ADDR | ansible.utils.ipsubnet(24) }} scram-sha-256
+          host all all {{ S_LAN_ADDR | ansible.utils.ipsubnet(24) }} scram-sha-256
           {% for item in groups.all %}
           host replication {{ PG_REPLICATION_USER }} {{ hostvars[item].D_LAN_ADDR }}/32 scram-sha-256
           {% endfor %}
