@@ -388,9 +388,11 @@ Daemon Status:
 postgresql-client をインストールします。
 
 ```bash
-$ sudo apt install -y postgresql-client
+$ sudo apt install -y postgresql-common
+$ sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+$ sudo apt install -y postgresql-client-17
 $ psql --version
-psql (PostgreSQL) 16.9 (Ubuntu 16.9-0ubuntu0.24.04.1)
+psql (PostgreSQL) 17.5 (Ubuntu 17.5-1.pgdg24.04+1)
 ```
 
 Ubuntu から Service LAN の仮想 IP へ接続します。パスワードは `postgres` です。
