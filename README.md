@@ -122,7 +122,8 @@ $ git config --global https.proxy http://PROXY:8080
 設定を反映させるため、WSL2 を一度終了・再起動します。
 
 ```powershell
-> wsl -t Ubuntu-24.04
+$ exit
+> wsl --shutdown
 > wsl -d Ubuntu-24.04
 ```
 
@@ -214,11 +215,9 @@ Pacemaker リソース設定とクラスタ環境の最終設定を行います�
 $ ansible-playbook 70-resource-settings.yml -K
 ```
 
-## インストール後の運用手順
+## PG-REX の起動
 
 Windows で Tera Term を起動し、pgrex01 に SSH 接続します。 pgrex01 に SSH 接続する場合は localhost:2231、pgrex02 に SSH 接続する場合は localhost:2232 です。
-
-### PG-REX の起動
 
 pgrex01 を Primary ノードとして起動します。
 
@@ -230,11 +229,11 @@ pm_pcsgen_env.csv  pm_pcsgen_env.sh  pm_pcsgen_env.xml
 [root@pgrex01 ~]# pg-rex_primary_start pm_pcsgen_env.xml
 1. Pacemaker および Corosync が停止していることを確認
 ...[OK]
-2. 稼働中の Primary が存在していないことを確認
+1. 稼働中の Primary が存在していないことを確認
 ...[OK]
-3. 起動禁止フラグの存在を確認
+1. 起動禁止フラグの存在を確認
 ...[OK]
-4. HAクラスタ の作成
+1. HAクラスタ の作成
 Destroying cluster on hosts: 'pgrex01', 'pgrex02'...
 pgrex02: Successfully destroyed cluster
 pgrex01: Successfully destroyed cluster
@@ -251,19 +250,19 @@ pgrex01: successful distribution of the file 'corosync.conf'
 pgrex02: successful distribution of the file 'corosync.conf'
 Cluster has been successfully set up.
 ...[OK]
-5. Pacemaker 起動
+1. Pacemaker 起動
 Starting Cluster...
 Waiting for node(s) to start...
 Started
 ...[OK]
-6. リソース定義 xml ファイルの反映
+1. リソース定義 xml ファイルの反映
 CIB updated
 ...[OK]
 Warning: If node(s) 'pgrex02' are not powered off or they do have access to shared resources, data corruption and/or cluster failure may occur
 Warning: If node 'pgrex02' is not powered off or it does have access to shared resources, data corruption and/or cluster failure may occur
 Quorum unblocked
 Waiting for nodes canceled
-7. Primary の起動確認
+1. Primary の起動確認
 ...[OK]
 ノード(pgrex01)が Primary として起動しました
 [root@pgrex01 ~]#
@@ -318,7 +317,7 @@ Starting Cluster...
 [root@pgrex02 ~]#
 ```
 
-さいごに、pgrex01（または pgrex02）で、pcs status --full コマンドを実行します。
+pgrex01（または pgrex02）で、pcs status --full コマンドを実行します。
 
 ```bash
 [root@pgrex01 ~]# pcs status --full
@@ -383,7 +382,32 @@ Daemon Status:
 [root@pgrex01 ~]#
 ```
 
-### （任意）PG-REX の停止
+## 運用手順
+
+### Ubuntu から PostgreSQL への接続
+
+postgresql-client をインストールします。
+
+```bash
+$ sudo apt install -y postgresql-client
+$ psql --version
+psql (PostgreSQL) 16.9 (Ubuntu 16.9-0ubuntu0.24.04.1)
+```
+
+Ubuntu から Service LAN の仮想 IP へ接続します。パスワードは `postgres` です。
+
+```bash
+$ psql -h 192.168.76.201 -U postgres -d postgres
+Password for user postgres:
+psql (16.9 (Ubuntu 16.9-0ubuntu0.24.04.1), server 17.4)
+WARNING: psql major version 16, server major version 17.
+         Some psql features might not work.
+Type "help" for help.
+
+postgres=#
+```
+
+### PG-REX の停止
 
 PG-REX を停止します。PG-REX を手動で停止する場合、この手順は必要ありません。
 
