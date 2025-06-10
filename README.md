@@ -398,11 +398,9 @@ psql (PostgreSQL) 17.5 (Ubuntu 17.5-1.pgdg24.04+1)
 Ubuntu から Service LAN の仮想 IP へ接続します。パスワードは `postgres` です。
 
 ```bash
-$ psql -h 192.168.76.201 -U postgres -d postgres
+psql -h 192.168.76.201 -U postgres -d postgres
 Password for user postgres:
-psql (16.9 (Ubuntu 16.9-0ubuntu0.24.04.1), server 17.4)
-WARNING: psql major version 16, server major version 17.
-         Some psql features might not work.
+psql (17.5 (Ubuntu 17.5-1.pgdg24.04+1), server 17.4)
 Type "help" for help.
 
 postgres=#
