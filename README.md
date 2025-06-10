@@ -46,6 +46,13 @@ WSL2 上の Ubuntu で ansible-playbook を実行し、VirtualBox 上の仮想�
 - WSL2
   - https://learn.microsoft.com/ja-jp/windows/wsl/install
 
+### SEP（Symantec Endpoint Protection）の設定
+
+Windows 端末で SEP（Symantec Endpoint Protection）が有効である場合、Ubuntu の `apt` コマンドが失敗します。
+以下のリンクを参考に、SEP の設定を「IPトラフィックを許可する」に変更しましょう。
+
+- https://qiita.com/2done/items/65760129ba4792687798
+
 ### Ubuntu 24.04 のインストール
 
 WSL2 で Ubuntu 24.04（以下、Ubuntu）をインストールします。
@@ -55,13 +62,6 @@ WSL2 で Ubuntu 24.04（以下、Ubuntu）をインストールします。
 ```
 
 Ubuntu のインストール後、ユーザー名とパスワードを設定します。
-
-### Ubuntu のソフトウェアの更新
-
-```bash
-$ sudo apt update
-$ sudo apt upgrade
-```
 
 ### WSL2 設定ファイルの編集
 
@@ -85,7 +85,7 @@ options="metadata"
 
 `[automount]` セクションにより、Windows ファイルシステム（`/mnt/c`）配下でも、playbook や ssh 鍵のパーミッションが正しく設定可能になります。
 
-### （未検証）Proxy 設定
+### Proxy 設定
 
 Proxy 環境下で使用する場合は、以下の設定が必要です。
 
@@ -99,6 +99,8 @@ https_proxy=http://PROXY:8080/
 ```bash
 export http_proxy=http://PROXY:8080/
 export https_proxy=http://PROXY:8080/
+export HTTP_PROXY=http://PROXY:8080/
+export HTTPS_PROXY=https://PROXY:8080/
 export WSLENV=VAGRANT_CWD/p:http_proxy:https_proxy
 ```
 
@@ -124,7 +126,12 @@ $ git config --global https.proxy http://PROXY:8080
 > wsl -d Ubuntu-24.04
 ```
 
-以下、Ubuntu の作業ディレクトリで作業します。
+### Ubuntu のソフトウェアの更新
+
+```bash
+$ sudo apt update
+$ sudo apt upgrade
+```
 
 ### Ansible のインストール
 
@@ -140,6 +147,8 @@ $ ansible --version
 ```bash
 $ sudo apt install -y python3 python3-netaddr python3-passlib python3-venv unzip
 ```
+
+以下、Ubuntu の作業ディレクトリで作業します。
 
 ### リポジトリの取得
 
