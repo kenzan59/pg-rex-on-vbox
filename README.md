@@ -49,11 +49,11 @@ WSL2 上の Ubuntu で ansible-playbook を実行し、VirtualBox 上の仮想�
 ### SEP（Symantec Endpoint Protection）の設定
 
 Windows 端末で SEP（Symantec Endpoint Protection）が有効である場合、Ubuntu の `apt` コマンドが失敗します。
-以下のリンクを参考に、SEP の設定を「IPトラフィックを許可する」に変更しましょう。
+以下のリンクを参考に、SEP の設定を「IPトラフィックを許可する」に変更します。
 
 - https://qiita.com/2done/items/65760129ba4792687798
 
-### Ubuntu 24.04 のインストール
+### Ubuntu のインストール
 
 WSL2 で Ubuntu 24.04（以下、Ubuntu）をインストールします。
 
@@ -104,11 +104,10 @@ export HTTPS_PROXY=https://PROXY:8080/
 export WSLENV=VAGRANT_CWD/p:http_proxy:https_proxy
 ```
 
-`/etc/apt/apt.conf.d/99proxy`
+`/etc/apt/apt.conf.d/proxy.conf`
 ```
 Acquire::http::proxy "http://PROXY:8080/";
 Acquire::https::proxy "http://PROXY:8080/";
-Acquire::http::Timeout "300";
 ```
 
 `git`
@@ -119,7 +118,7 @@ $ git config --global https.proxy http://PROXY:8080
 
 ### WSL2 の再起動
 
-設定を反映させるため、WSL2 を一度終了・再起動します。
+設定を反映させるため、WSL2 を一度終了し、起動します。
 
 ```powershell
 $ exit
@@ -415,7 +414,7 @@ PG-REX を停止します。PG-REX を手動で停止する場合、この手順
 $ ansible-playbook 88-pg-rex-stop.yml
 ```
 
-### 環境の停止
+### クラスタ環境の停止
 
 仮想マシンと VirtualBMC サービスを完全に停止します。
 
@@ -423,7 +422,7 @@ $ ansible-playbook 88-pg-rex-stop.yml
 $ ansible-playbook 89-demo-stop.yml -K
 ```
 
-### 環境の再起動
+### クラスタ環境の再起動
 
 仮想マシンと VirtualBMC サービスを再起動します。
 
@@ -433,7 +432,7 @@ $ ansible-playbook 80-demo-restart.yml -K
 
 再起動後、PG-REX を手動で起動してください。
 
-### 環境の完全削除
+### クラスタ環境の完全削除
 
 環境の停止後、環境を完全に削除したい場合は、`vagrant.exe destroy` コマンドで仮想マシンを削除します。
 
@@ -446,7 +445,7 @@ $ vagrant.exe destroy
 ==> pgrex01: Destroying VM and associated drives...
 ```
 
-Vagrant によって作成したネットワークについては、VirtualBox GUI 画面 → ツール → ネットワーク で確認し、不要な項目があれば削除してください。
+Vagrant によって作成したネットワークについては、VirtualBox GUI 画面 → ツール → ネットワーク を確認し、不要な項目があれば削除してください。
 
 ## ディレクトリ構成
 
