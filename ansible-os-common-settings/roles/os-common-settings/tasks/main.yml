@@ -42,6 +42,14 @@
 - name: Set system timezone if not already set
   command: "timedatectl set-timezone {{ SYSTEM_TIMEZONE }}"
   when: "'Time zone: ' + SYSTEM_TIMEZONE not in _timedatectl.stdout"
+  register: _timezone_changed
+
+# Restart rsyslog to apply new timezone to log timestamps
+- name: Restart rsyslog service
+  systemd:
+    name: rsyslog
+    state: restarted
+  when: _timezone_changed is changed
 
 # Writes all inventory hosts' IPs and names into /etc/hosts using M_LAN_ADDR from inventory
 - name: Add host entries to /etc/hosts
