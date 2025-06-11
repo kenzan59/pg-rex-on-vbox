@@ -92,8 +92,8 @@ Proxy 環境下で使用する場合は、以下の設定が必要です。
 #### Windows
 
 ```bash
-> set http_proxy "http://172.19.0.3:8080/"
-> set https_proxy "http://172.19.0.3:8080/"
+> set http_proxy "http://PROXY:8080/"
+> set https_proxy "http://PROXY:8080/"
 > set no_proxy "localhost,127.0.0.1"
 ```
 
@@ -110,7 +110,7 @@ https_proxy=http://PROXY:8080/
 export http_proxy=http://PROXY:8080/
 export https_proxy=http://PROXY:8080/
 export HTTP_PROXY=http://PROXY:8080/
-export HTTPS_PROXY=https://PROXY:8080/
+export HTTPS_PROXY=http://PROXY:8080/
 export WSLENV=VAGRANT_CWD/p:http_proxy:https_proxy
 ```
 

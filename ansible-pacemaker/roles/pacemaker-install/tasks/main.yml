@@ -50,8 +50,11 @@
   set_fact:
     NO_PROXY_LIST: >-
       {%- for node in groups['hacluster']|sort -%}
-        {{ node }},{{ hostvars[node]['M_LAN_ADDR']}},
+        {{ node }},{{ hostvars[node]['M_LAN_ADDR'] }},
       {%- endfor -%}
+- name: debug NO_PROXY_LIST
+  debug:
+    var: NO_PROXY_LIST
 - name: add no_proxy for pcs communication
   lineinfile:
     path: /etc/environment
@@ -75,7 +78,7 @@
   with_items:
     - no_proxy
     - NO_PROXY
-  when: vagrant_proxyconf.stat.exists and ansible_env.https_proxy is defined or ansible_env.HTTPS_PROXY is defined
+  when: vagrant_proxyconf.stat.exists and (ansible_env.https_proxy is defined or ansible_env.HTTPS_PROXY is defined)
 
 ### cluster authentication
 ### pcs host auth NODE1 addr=... NODE2 addr=... -u hacluster -p PASSWORD
