@@ -89,6 +89,16 @@ options="metadata"
 
 Proxy 環境下で使用する場合は、以下の設定が必要です。
 
+#### Windows
+
+```bash
+> set http_proxy "http://172.19.0.3:8080/"
+> set https_proxy "http://172.19.0.3:8080/"
+> set no_proxy "localhost,127.0.0.1"
+```
+
+#### Ubuntu
+
 `/etc/environment`
 ```
 http_proxy=http://PROXY:8080/
