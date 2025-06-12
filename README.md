@@ -166,10 +166,12 @@ $ sudo apt install -y python3 python3-netaddr python3-passlib python3-venv unzip
 
 以下、Ubuntu の作業ディレクトリで作業します。
 
-### リポジトリの取得
+### リポジトリの取得とチェックアウト
 
 ```bash
 $ git clone --recursive https://github.com/kenzan59/pg-rex-on-vbox.git
+$ cd pg-rex-on-vbox
+$ git checkout <release-version>
 ```
 
 ## 構築手順
