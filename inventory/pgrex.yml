@@ -25,13 +25,13 @@ all:
     PM_EXTRA_TOOLS_URL: "https://github.com/linux-ha-japan/pm_extra_tools/releases/download/pm_extra_tools-1.6/pm_extra_tools-1.6-1.el9.noarch.rpm"
 
     ### ansible-postgresql
-    PG_REV: '17.4-1PGDG'
+    PG_REV: '17.5-3PGDG'
 
     ### ansible-pg-rex-operation-tools
     ### for perl-IO-Tty-1.16-4.el9.x86_64.rpm
     PERL_IO_TTY_RPM_URL: "https://dl.rockylinux.org/pub/rocky/9/devel/x86_64/os/Packages/p/perl-IO-Tty-1.16-4.el9.x86_64.rpm"
     ### for Net_OpenSSH-0.62-1.el9.x86_64.rpm and pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm
-    PG_REX_TOOLS_URL: "https://github.com/ossc-db/PG-REX-tools/releases/download/PG-REX_17_1/pg-rex17-1.0-1.tar.gz"
+    PG_REX_TOOLS_URL: "https://github.com/ossc-db/PG-REX-tools/releases/download/PG-REX_17_2/pg-rex17-2.0-1-tar.gz"
     NET_OPENSSH_RPM: Net_OpenSSH-0.62-1.el9.x86_64.rpm
     PG_REX_OPERATION_TOOLS_SCRIPT_RPM: pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm
     ### Replication listener virtual IP address
@@ -69,6 +69,7 @@ all:
       ansible_host: 192.168.80.101
       ansible_user: vagrant
       ansible_ssh_private_key_file: ./vagrant/.vagrant/machines/pgrex01/virtualbox/private_key
+      ansible_python_interpreter: /usr/bin/python3
     pgrex02:
       S_LAN_ADDR: 192.168.76.102
       D_LAN_ADDR: 192.168.77.102
@@ -78,6 +79,7 @@ all:
       ansible_host: 192.168.80.102
       ansible_user: vagrant
       ansible_ssh_private_key_file: ./vagrant/.vagrant/machines/pgrex02/virtualbox/private_key
+      ansible_python_interpreter: /usr/bin/python3
 
 ### ansible-virtualbmc
 hacluster_vbmc:
