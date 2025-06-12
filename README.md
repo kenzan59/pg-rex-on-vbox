@@ -202,7 +202,7 @@ $ ansible-playbook 40-pacemaker.yml
 
 ### 5. PostgreSQL 設定
 
-PostgreSQL をインストールし、レプリケーション設定を行います。
+PostgreSQL のインストールと設定を行います。
 
 ```bash
 $ ansible-playbook 50-postgresql.yml
@@ -210,7 +210,7 @@ $ ansible-playbook 50-postgresql.yml
 
 ### 6. PG-REX 運用補助ツール設定
 
-PG-REX 運用補助ツールをインストールし、クラスタ運用に必要なスクリプトを設定します。
+PG-REX 運用補助ツールをインストールし、クラスタ環境の運用に必要なスクリプトを設定します。
 
 ```bash
 $ ansible-playbook 60-pg-rex-operation-tools.yml
@@ -218,7 +218,7 @@ $ ansible-playbook 60-pg-rex-operation-tools.yml
 
 ### 7. リソース設定
 
-Pacemaker リソース設定とクラスタ環境の最終設定を行います。
+Pacemaker リソース設定とクラスタ環境の設定を行います。
 
 ```bash
 $ ansible-playbook 70-resource-settings.yml -K
@@ -226,7 +226,7 @@ $ ansible-playbook 70-resource-settings.yml -K
 
 ## PG-REX の起動
 
-Windows で Tera Term を起動し、pgrex01 に SSH 接続します。 pgrex01 に SSH 接続する場合は localhost:2231、pgrex02 に SSH 接続する場合は localhost:2232 です。
+Windows で Tera Term を起動し、pgrex01 に SSH 接続します。 pgrex01 に SSH 接続する場合は localhost:2231、pgrex02 に SSH 接続する場合は localhost:2232 を指定してください。
 
 pgrex01 を Primary ノードとして起動します。
 
@@ -405,7 +405,7 @@ $ psql --version
 psql (PostgreSQL) 17.5 (Ubuntu 17.5-1.pgdg24.04+1)
 ```
 
-Ubuntu から Service LAN の仮想 IP へ接続します。パスワードは `postgres` です。
+Ubuntu から Service LAN の仮想 IP `192.168.76.201` へ接続します。パスワードは `postgres` です。
 
 ```bash
 psql -h 192.168.76.201 -U postgres -d postgres
@@ -455,7 +455,7 @@ $ vagrant.exe destroy
 ==> pgrex01: Destroying VM and associated drives...
 ```
 
-Vagrant によって作成したネットワークについては、VirtualBox GUI 画面 → ツール → ネットワーク を確認し、不要な項目があれば削除してください。
+Vagrant によって作成したネットワークについては、VirtualBox GUI 画面 → ツール → ネットワーク を確認し、不要な項目を削除してください。
 
 ## ディレクトリ構成
 
