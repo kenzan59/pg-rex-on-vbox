@@ -33,12 +33,6 @@ WSL2 上の Ubuntu で ansible-playbook を実行し、VirtualBox 上の仮想�
 - メモリ: 最小 8 GB（各 VM 4 GB）
 - ディスク容量: 最小 20 GB
 
-### リリースバージョンの情報
-
-| リリースバージョン | OS のバージョン | PostgreSQL のバージョン | リリース日 |
-| --- | --- | --- | --- |
-| v9.5-17.5-0 | RockyLinux 9.5 | PostgreSQL 17.5 | 2025/06/12 |
-
 ## 事前準備
 
 ### VirtualBox、Vagrant、WSL2 のインストール
@@ -173,6 +167,9 @@ $ git clone --recursive https://github.com/kenzan59/pg-rex-on-vbox.git
 $ cd pg-rex-on-vbox
 $ git checkout <release-version>
 ```
+
+リリースバージョンの情報は README の最下部を参照ください。
+
 
 ## 構築手順
 
@@ -501,3 +498,9 @@ pg-rex-on-vbox/
 ## ライセンス
 
 このプロジェクトは MIT ライセンスの下で公開されています。
+
+## リリースバージョンの情報
+
+| リリースバージョン | OS のバージョン | PostgreSQL のバージョン | リリース日 |
+| --- | --- | --- | --- |
+| v9.5-17.5-0 | RockyLinux 9.5 | PostgreSQL 17.5 | 2025/06/12 |
