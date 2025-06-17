@@ -5,18 +5,18 @@
     src: "{{ item }}"
     dest: /var/tmp/
   with_items:
-    - pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm
-    - Net_OpenSSH-0.62-1.el9.x86_64.rpm
-    - perl-IO-Tty-1.16-4.el9.x86_64.rpm
+    - "{{ PG_REX_OPERATION_TOOLS_SCRIPT_RPM }}"
+    - "{{ NET_OPENSSH_RPM }}"
+    - "{{ PERL_IO_TTY_RPM_URL.split('/')[-1] }}"
   register: rpm_copy
 
 # Install all RPM packages together using dnf command
 - name: Install all PG-REX operation tools RPM packages
   dnf:
     name:
-      - /var/tmp/pg-rex_operation_tools_script-17.0-1.el9.noarch.rpm
-      - /var/tmp/Net_OpenSSH-0.62-1.el9.x86_64.rpm
-      - /var/tmp/perl-IO-Tty-1.16-4.el9.x86_64.rpm
+      - "/var/tmp/{{ PG_REX_OPERATION_TOOLS_SCRIPT_RPM }}"
+      - "/var/tmp/{{ NET_OPENSSH_RPM }}"
+      - "/var/tmp/{{ PERL_IO_TTY_RPM_URL.split('/')[-1] }}"
     disable_gpg_check: True
     state: present
 
