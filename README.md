@@ -22,6 +22,7 @@ WSL2 上の Ubuntu で ansible-playbook を実行し、VirtualBox 上の仮想�
 
 ### 動作確認時のソフトウェアのバージョン
 - Windows 11 Home 24H2
+  - Windows 11 22H2 以降が必須
 - VirtualBox : 7.1.8
 - Vagrant : 2.4.5
 - WSL2 : 2.5.7.0
@@ -243,11 +244,11 @@ pm_pcsgen_env.csv  pm_pcsgen_env.sh  pm_pcsgen_env.xml
 [root@pgrex01 ~]# pg-rex_primary_start pm_pcsgen_env.xml
 1. Pacemaker および Corosync が停止していることを確認
 ...[OK]
-1. 稼働中の Primary が存在していないことを確認
+2. 稼働中の Primary が存在していないことを確認
 ...[OK]
-1. 起動禁止フラグの存在を確認
+3. 起動禁止フラグの存在を確認
 ...[OK]
-1. HAクラスタ の作成
+4. HAクラスタ の作成
 Destroying cluster on hosts: 'pgrex01', 'pgrex02'...
 pgrex02: Successfully destroyed cluster
 pgrex01: Successfully destroyed cluster
@@ -264,19 +265,19 @@ pgrex01: successful distribution of the file 'corosync.conf'
 pgrex02: successful distribution of the file 'corosync.conf'
 Cluster has been successfully set up.
 ...[OK]
-1. Pacemaker 起動
+5. Pacemaker 起動
 Starting Cluster...
 Waiting for node(s) to start...
 Started
 ...[OK]
-1. リソース定義 xml ファイルの反映
+6. リソース定義 xml ファイルの反映
 CIB updated
 ...[OK]
 Warning: If node(s) 'pgrex02' are not powered off or they do have access to shared resources, data corruption and/or cluster failure may occur
 Warning: If node 'pgrex02' is not powered off or it does have access to shared resources, data corruption and/or cluster failure may occur
 Quorum unblocked
 Waiting for nodes canceled
-1. Primary の起動確認
+7. Primary の起動確認
 ...[OK]
 ノード(pgrex01)が Primary として起動しました
 [root@pgrex01 ~]#
