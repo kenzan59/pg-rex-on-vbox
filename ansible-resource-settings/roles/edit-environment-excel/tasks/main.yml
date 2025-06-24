@@ -65,8 +65,8 @@
       --set F211={{ hostvars[groups['hacluster_vbmc'][1]]['IPMI_IP'] }}
       --set F212="{{ hostvars[groups['hacluster_vbmc'][1]]['IPMI_USER'] | quote }}"
       --set F213="{{ hostvars[groups['hacluster_vbmc'][1]]['IPMI_PASS'] | quote }}"
-      --set F226={{ groups['hacluster_vbmc'][0] }}
-      --set F227={{ groups['hacluster_vbmc'][1] }}
+      --set G226={{ groups['hacluster_vbmc'][0] }}
+      --set G227={{ groups['hacluster_vbmc'][1] }}
 
 # Run the CSV editing script to insert values into designated cells
 - name: Edit CSV using venv-resource-settings
