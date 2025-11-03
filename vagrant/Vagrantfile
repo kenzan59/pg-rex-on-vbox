@@ -2,9 +2,9 @@
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
-  # RockyLinux 9.5
-  config.vm.box = "rockylinux/9"
-  config.vm.box_version = "5.0.0"
+  # RockyLinux 10.0
+  config.vm.box = "rockylinux/10"
+  config.vm.box_version = "0.0.0"
   config.vm.box_check_update = false
 
   # VirtualBox node common settings

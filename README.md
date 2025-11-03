@@ -21,14 +21,8 @@ WSL2 上の Ubuntu で ansible-playbook を実行し、VirtualBox 上の仮想�
 ## 前提条件
 
 ### 動作確認時のソフトウェアのバージョン
-- Windows 11 Home 24H2
-  - Windows 11 22H2 以降が必須
-- VirtualBox : 7.1.8
-- Vagrant : 2.4.5
-- WSL2 : 2.5.7.0
-  - Ubuntu : 24.04 LTS
-- Proxy なし
-  - Proxy 環境下での構築手順は未検証
+
+「リリースバージョンの情報」の項目を参照してください。
 
 ### 必要なリソース
 - メモリ: 最小 8 GB（各 VM 4 GB）
@@ -502,6 +496,40 @@ pg-rex-on-vbox/
 
 ## リリースバージョンの情報
 
-| リリースバージョン | RockyLinux | PostgreSQL | pm_extra_tools | PG-REX | リリース日 |
+### RockyLinux 9 系
+
+- Windows 11 Home 24H2
+  - Windows 11 22H2 以降が必須
+- VirtualBox : 7.1.8
+- Vagrant : 2.4.5
+- WSL2 : 2.5.7.0
+  - Ubuntu : 24.04 LTS
+- Proxy なし
+  - Proxy 環境下での構築手順は未検証
+
+| Release Ver | RockyLinux | PostgreSQL | pm_extra_tools | PG-REX | Release Date |
 | --- | --- | --- | --- | --- | --- |
 | v9.5-17.5-0 | 9.5 | 17.5-3 | 1.6-1 | 17 2.0 |2025/06/12 |
+
+### RockyLinux 10 系
+
+- Windows 11 Home 25H2
+  - Windows 11 22H2 以降が必須
+- VirtualBox : 7.2.4
+- Vagrant : 2.4.9
+- WSL2 : 2.6.1.0
+  - Ubuntu : 24.04 LTS
+- Proxy なし
+  - Proxy 環境下での構築手順は未検証
+
+| Release Ver | RockyLinux | PostgreSQL | pm_extra_tools | PG-REX | Release Date |
+| --- | --- | --- | --- | --- | --- |
+| v10.0-18.0-0 | 10.0 | 18.x-x | 1.7-x | 18 1.0 |2025/xx/xx |
+
+#### RockyLinux10 使用時の注意事項
+
+- Rocky Linux 10 公式 Vagrant Box の動作が異常に遅い場合の対処 
+  - https://qiita.com/ksk_ha/items/f4559ed3b6cabd00af01
+- VirtualBox - トラブルシュート - 7.2.4 仮想マシンが起動しない
+  - https://freebsd.sing.ne.jp/tool/08/02/99/12.html
+    - vagrant up 実行時 `Stderr: VBoxManage.exe: error: Failed to load R0 module C:\Program Files\Oracle\VirtualBox/VMMR0.r0: SUP_IOCTL_LDR_OPEN failed (VERR_LDR_IMPORTED_SYMBOL_NOT_FOUND)` エラーが発生した場合は、一度 VirtualBox をアンインストール → インストールするとよいみたいです（私はこれに引っ掛かりました）
