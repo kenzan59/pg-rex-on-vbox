@@ -499,7 +499,6 @@ pg-rex-on-vbox/
 ### RockyLinux 9 系
 
 - Windows 11 Home 24H2
-  - Windows 11 22H2 以降が必須
 - VirtualBox : 7.1.8
 - Vagrant : 2.4.5
 - WSL2 : 2.5.7.0
@@ -514,7 +513,6 @@ pg-rex-on-vbox/
 ### RockyLinux 10 系
 
 - Windows 11 Home 25H2
-  - Windows 11 22H2 以降が必須
 - VirtualBox : 7.2.4
 - Vagrant : 2.4.9
 - WSL2 : 2.6.1.0
@@ -524,7 +522,7 @@ pg-rex-on-vbox/
 
 | Release Ver | RockyLinux | PostgreSQL | pm_extra_tools | PG-REX | Release Date |
 | --- | --- | --- | --- | --- | --- |
-| v10.0-18.0-0 | 10.0 | 18.x-x | 1.7-x | 18 1.0 |2025/xx/xx |
+| v10.0-18.0-0 | 10.0 | 18.x-x | 1.7-1 | 18 1.0 |2025/xx/xx |
 
 #### RockyLinux10 使用時の注意事項
 
