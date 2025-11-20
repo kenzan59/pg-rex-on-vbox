@@ -59,3 +59,27 @@
       {% for item in groups.all %}
       {{ hostvars[item].M_LAN_ADDR }} {{ item }} {{ item }}
       {% endfor %}
+
+## For password authentication from teraterm to VMs
+# Check if 05-vagrant.conf exists
+- name: Check if 05-vagrant.conf exists
+  stat:
+    path: /etc/ssh/sshd_config.d/05-vagrant.conf
+  register: _vagrant_conf
+
+# Enable password authentication if disabled in 05-vagrant.conf
+- name: Enable PasswordAuthentication in 05-vagrant.conf
+  lineinfile:
+    path: /etc/ssh/sshd_config.d/05-vagrant.conf
+    regexp: '^(\s*)PasswordAuthentication\s+no'
+    line: 'PasswordAuthentication yes'
+    backrefs: yes
+  when: _vagrant_conf.stat.exists
+  register: _ssh_config_changed
+
+# Restart sshd service to apply changes
+- name: Restart sshd service
+  systemd:
+    name: sshd
+    state: restarted
+  when: _ssh_config_changed is changed
